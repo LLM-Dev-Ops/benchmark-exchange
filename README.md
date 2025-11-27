@@ -1,28 +1,188 @@
+<div align="center">
+
 # LLM Benchmark Exchange
 
-A decentralized platform for standardized LLM benchmarking with community governance.
+<img src="https://img.shields.io/badge/🦀_Rust-1.70+-orange?style=for-the-badge&logo=rust" alt="Rust 1.70+"/>
 
-## Features
+**A decentralized platform for standardized LLM benchmarking with community governance**
 
-- **Standardized Benchmarks**: Create, version, and manage benchmarks with comprehensive metadata
-- **Submissions & Leaderboards**: Submit model results and view rankings across benchmarks
-- **Community Governance**: Propose changes, vote on decisions, and participate in platform evolution
-- **Type-Safe SDK**: Rust SDK with builder patterns and comprehensive error handling
-- **CLI Tool**: Command-line interface for all platform operations
+[![CI](https://img.shields.io/github/actions/workflow/status/globalbusinessadvisors/llm-benchmark-exchange/ci.yml?branch=main&style=flat-square&logo=github&label=CI)](https://github.com/globalbusinessadvisors/llm-benchmark-exchange/actions)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE.md)
+[![Rust](https://img.shields.io/badge/rust-1.70%2B-orange?style=flat-square&logo=rust)](https://www.rust-lang.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14%2B-336791?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Redis](https://img.shields.io/badge/Redis-7%2B-DC382D?style=flat-square&logo=redis&logoColor=white)](https://redis.io/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-326CE5?style=flat-square&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
 
-## Project Structure
+---
+
+[Features](#-features) •
+[Quick Start](#-quick-start) •
+[CLI](#-cli) •
+[SDK](#-sdk) •
+[API](#-api) •
+[Development](#-development) •
+[Architecture](#-architecture)
+
+</div>
+
+---
+
+## Overview
+
+LLM Benchmark Exchange provides a unified platform for the AI community to:
+
+- **Define** standardized benchmarks with versioning and metadata
+- **Submit** model evaluation results with verification
+- **Compare** models across multiple benchmarks via leaderboards
+- **Govern** the platform through community proposals and voting
 
 ```
-crates/
-├── api/            # REST API server (Axum-based)
-├── application/    # Application services and use cases
-├── cli/            # Command-line interface
-├── domain/         # Core domain types and business logic
-├── infrastructure/ # Database, caching, and external services
-└── sdk/            # Rust SDK for API integration
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         LLM Benchmark Exchange                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐  │
+│   │  Benchmarks │    │ Submissions │    │ Leaderboards│    │ Governance  │  │
+│   │  ─────────  │    │  ─────────  │    │  ─────────  │    │  ─────────  │  │
+│   │  • MMLU     │───▶│  • Results  │───▶│  • Rankings │    │  • Proposals│  │
+│   │  • HumanEval│    │  • Metrics  │    │  • Compare  │    │  • Voting   │  │
+│   │  • Custom   │    │  • Verify   │    │  • Export   │    │  • Comments │  │
+│   └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘  │
+│                                                                              │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │                         Access Methods                                │  │
+│   │   🖥️  CLI          📦  SDK (Rust)         🌐  REST API       gRPC    │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## CLI
+---
+
+## ✨ Features
+
+<table>
+<tr>
+<td width="50%">
+
+### 📊 Standardized Benchmarks
+- Version-controlled benchmark definitions
+- Rich metadata and documentation
+- Multiple evaluation methods
+- Test case management
+
+</td>
+<td width="50%">
+
+### 🏆 Leaderboards & Rankings
+- Real-time leaderboard updates
+- Model-to-model comparisons
+- Verification levels
+- Export capabilities
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 📝 Submissions & Verification
+- Submit evaluation results
+- Multi-level verification
+- Detailed metrics tracking
+- Reproducibility support
+
+</td>
+<td width="50%">
+
+### 🗳️ Community Governance
+- Proposal system
+- Democratic voting
+- Transparent decision-making
+- Comment threads
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 🛠️ Developer Tools
+- Type-safe Rust SDK
+- Full-featured CLI
+- Shell completions
+- Comprehensive docs
+
+</td>
+<td width="50%">
+
+### 🚀 Production Ready
+- Docker & Kubernetes
+- Helm charts
+- CI/CD pipelines
+- Horizontal scaling
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🚀 Quick Start
+
+### Using Docker Compose
+
+```bash
+# Clone the repository
+git clone https://github.com/globalbusinessadvisors/llm-benchmark-exchange.git
+cd llm-benchmark-exchange
+
+# Start all services
+docker-compose up -d
+
+# The API will be available at http://localhost:8080
+```
+
+### Using the CLI
+
+```bash
+# Install the CLI
+cargo install --path crates/cli
+
+# Configure
+export LLM_BENCHMARK_API_URL="https://api.llm-benchmark.org"
+export LLM_BENCHMARK_TOKEN="your-token"
+
+# Explore benchmarks
+llm-benchmark benchmark list
+llm-benchmark leaderboard mmlu --limit 10
+```
+
+---
+
+## 📁 Project Structure
+
+```
+llm-benchmark-exchange/
+├── crates/
+│   ├── api-rest/        # 🌐 REST API (Axum)
+│   ├── api-grpc/        # ⚡ gRPC API (Tonic)
+│   ├── application/     # 📋 Application services
+│   ├── cli/             # 🖥️  Command-line interface
+│   ├── common/          # 🔧 Shared utilities
+│   ├── domain/          # 🏛️  Core domain types
+│   ├── infrastructure/  # 🗄️  Database & external services
+│   ├── sdk/             # 📦 Rust SDK
+│   ├── testing/         # 🧪 Test utilities
+│   └── worker/          # ⚙️  Background jobs
+├── migrations/          # 📊 Database migrations
+├── docker/              # 🐳 Docker configurations
+├── helm/                # ☸️  Helm charts
+└── k8s/                 # ☸️  Kubernetes manifests
+```
+
+---
+
+## 🖥️ CLI
 
 The `llm-benchmark` CLI provides full access to platform functionality.
 
@@ -34,25 +194,20 @@ cargo install --path crates/cli
 
 ### Configuration
 
-Configure via environment variables or the config file:
-
 ```bash
+# Environment variables
 export LLM_BENCHMARK_API_URL="https://api.llm-benchmark.org"
 export LLM_BENCHMARK_TOKEN="your-api-token"
-export LLM_BENCHMARK_OUTPUT_FORMAT="table"  # json, table, or plain
-```
+export LLM_BENCHMARK_OUTPUT_FORMAT="table"
 
-Or use the config command:
-
-```bash
+# Or use the config command
 llm-benchmark config set api_endpoint https://api.llm-benchmark.org
 llm-benchmark config set token your-api-token
-llm-benchmark config show
 ```
 
 ### Global Options
 
-```bash
+```
 llm-benchmark [OPTIONS] <COMMAND>
 
 Options:
@@ -67,7 +222,8 @@ Options:
 
 ### Commands
 
-#### Benchmarks
+<details>
+<summary><b>📊 Benchmarks</b></summary>
 
 ```bash
 # List all benchmarks
@@ -83,8 +239,10 @@ llm-benchmark benchmark get mmlu
 # Create a new benchmark (interactive)
 llm-benchmark benchmark create
 ```
+</details>
 
-#### Submissions
+<details>
+<summary><b>📝 Submissions</b></summary>
 
 ```bash
 # Submit results
@@ -93,8 +251,10 @@ llm-benchmark submit --benchmark mmlu --model gpt-4 --version 0613 --score 0.86
 # List submissions
 llm-benchmark submit list --benchmark mmlu
 ```
+</details>
 
-#### Leaderboards
+<details>
+<summary><b>🏆 Leaderboards</b></summary>
 
 ```bash
 # View leaderboard
@@ -104,8 +264,10 @@ llm-benchmark lb mmlu                   # Short alias
 # View with options
 llm-benchmark leaderboard mmlu --limit 10 --verified-only
 ```
+</details>
 
-#### Governance
+<details>
+<summary><b>🗳️ Governance</b></summary>
 
 ```bash
 # List proposals
@@ -125,8 +287,10 @@ llm-benchmark proposal vote <proposal-id> --reject --reason "Needs more detail"
 # Comment on a proposal
 llm-benchmark proposal comment <proposal-id> "I have a question..."
 ```
+</details>
 
-#### Authentication
+<details>
+<summary><b>🔐 Authentication</b></summary>
 
 ```bash
 # Login
@@ -138,28 +302,37 @@ llm-benchmark auth status
 # Logout
 llm-benchmark auth logout
 ```
+</details>
 
-#### Shell Completions
+<details>
+<summary><b>🐚 Shell Completions</b></summary>
 
 ```bash
-# Generate shell completions
+# Bash
 llm-benchmark completions bash > ~/.local/share/bash-completion/completions/llm-benchmark
+
+# Zsh
 llm-benchmark completions zsh > ~/.zfunc/_llm-benchmark
+
+# Fish
 llm-benchmark completions fish > ~/.config/fish/completions/llm-benchmark.fish
+
+# PowerShell
 llm-benchmark completions powershell > llm-benchmark.ps1
 ```
+</details>
 
-## SDK
+---
+
+## 📦 SDK
 
 The Rust SDK provides type-safe access to the LLM Benchmark Exchange API.
 
 ### Installation
 
-Add to your `Cargo.toml`:
-
 ```toml
 [dependencies]
-llm-benchmark-sdk = { path = "crates/sdk" }
+llm-benchmark-sdk = { git = "https://github.com/globalbusinessadvisors/llm-benchmark-exchange", package = "llm-benchmark-sdk" }
 ```
 
 ### Quick Start
@@ -209,15 +382,18 @@ let client = Client::builder()
     .build()?;
 ```
 
-Environment variables are also supported:
-- `LLM_BENCHMARK_API_URL`
-- `LLM_BENCHMARK_API_KEY`
-- `LLM_BENCHMARK_TIMEOUT`
-- `LLM_BENCHMARK_DEBUG`
+**Environment Variables:**
+| Variable | Description |
+|----------|-------------|
+| `LLM_BENCHMARK_API_URL` | API endpoint URL |
+| `LLM_BENCHMARK_API_KEY` | Authentication key |
+| `LLM_BENCHMARK_TIMEOUT` | Request timeout (seconds) |
+| `LLM_BENCHMARK_DEBUG` | Enable debug mode |
 
 ### Services
 
-#### Benchmarks
+<details>
+<summary><b>Benchmarks</b></summary>
 
 ```rust
 use llm_benchmark_sdk::{BenchmarkFilter, BenchmarkCategory, BenchmarkStatus};
@@ -238,8 +414,10 @@ let request = CreateBenchmarkRequest::new(
 );
 let benchmark = client.benchmarks().create(request).await?;
 ```
+</details>
 
-#### Submissions
+<details>
+<summary><b>Submissions</b></summary>
 
 ```rust
 use llm_benchmark_sdk::{CreateSubmissionRequest, SubmissionResults};
@@ -263,8 +441,10 @@ let request = CreateSubmissionRequest {
 
 let submission = client.submissions().create(request).await?;
 ```
+</details>
 
-#### Leaderboards
+<details>
+<summary><b>Leaderboards</b></summary>
 
 ```rust
 // Get full leaderboard
@@ -282,8 +462,10 @@ println!("Score difference: {:.2}%", comparison.score_diff * 100.0);
 // Export leaderboard data
 let export = client.leaderboards().export("mmlu").await?;
 ```
+</details>
 
-#### Governance
+<details>
+<summary><b>Governance</b></summary>
 
 ```rust
 use llm_benchmark_sdk::{CreateProposalRequest, ProposalType, VoteType};
@@ -306,16 +488,10 @@ client.governance()
 client.governance()
     .comment(&proposal.id.to_string(), "I have a question...")
     .await?;
-
-// Get voting results
-let results = client.governance()
-    .get_voting_results(&proposal.id.to_string())
-    .await?;
 ```
+</details>
 
 ### Error Handling
-
-The SDK provides detailed error types:
 
 ```rust
 use llm_benchmark_sdk::SdkError;
@@ -328,12 +504,6 @@ match client.benchmarks().get("invalid-id").await {
     Err(SdkError::Unauthorized { message, .. }) => {
         println!("Auth failed: {}", message);
     }
-    Err(SdkError::ValidationError { message, field_errors }) => {
-        println!("Validation failed: {}", message);
-        for err in field_errors {
-            println!("  - {}: {}", err.field, err.message);
-        }
-    }
     Err(SdkError::RateLimited { retry_after }) => {
         println!("Rate limited, retry after {:?}s", retry_after);
     }
@@ -344,13 +514,44 @@ match client.benchmarks().get("invalid-id").await {
 }
 ```
 
-## Development
+---
+
+## 🌐 API
+
+### REST API
+
+The REST API is built with [Axum](https://github.com/tokio-rs/axum) and provides a comprehensive HTTP interface.
+
+**Base URL:** `https://api.llm-benchmark.org/api/v1`
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/benchmarks` | GET | List benchmarks |
+| `/benchmarks/{id}` | GET | Get benchmark details |
+| `/benchmarks` | POST | Create benchmark |
+| `/submissions` | GET | List submissions |
+| `/submissions` | POST | Create submission |
+| `/leaderboards/{benchmark_id}` | GET | Get leaderboard |
+| `/proposals` | GET | List proposals |
+| `/proposals` | POST | Create proposal |
+| `/proposals/{id}/vote` | POST | Vote on proposal |
+
+### gRPC API
+
+Protocol buffer definitions are available in `crates/api-grpc/proto/`.
+
+---
+
+## 🛠️ Development
 
 ### Prerequisites
 
-- Rust 1.70+
-- PostgreSQL 14+
-- Redis 7+
+| Requirement | Version |
+|-------------|---------|
+| Rust | 1.70+ |
+| PostgreSQL | 14+ |
+| Redis | 7+ |
+| Docker | 20+ (optional) |
 
 ### Building
 
@@ -367,30 +568,159 @@ cargo test
 # Run specific crate tests
 cargo test -p llm-benchmark-sdk
 cargo test -p llm-benchmark-cli
+
+# Run with all features
+cargo build --all-features
 ```
 
-### Running the API Server
+### Running Locally
 
 ```bash
-# Set environment variables
-export DATABASE_URL="postgresql://user:pass@localhost/llm_benchmark"
-export REDIS_URL="redis://localhost:6379"
+# Start dependencies
+docker-compose up -d postgres redis
 
-# Run the server
+# Run migrations
+./migrations/run_migrations.sh
+
+# Start the API server
 cargo run -p llm-benchmark-api
+
+# Start the worker (in another terminal)
+cargo run -p llm-benchmark-worker
 ```
 
-## Architecture
+### Environment Variables
 
-The platform follows a clean architecture pattern:
+```bash
+# Database
+DATABASE_URL="postgresql://user:pass@localhost/llm_benchmark"
 
-- **Domain Layer** (`crates/domain`): Core business entities and rules
-- **Application Layer** (`crates/application`): Use cases and application services
-- **Infrastructure Layer** (`crates/infrastructure`): Database, cache, and external integrations
-- **API Layer** (`crates/api`): REST API endpoints
-- **SDK** (`crates/sdk`): Client library for API consumers
-- **CLI** (`crates/cli`): Command-line interface
+# Redis
+REDIS_URL="redis://localhost:6379"
 
-## License
+# API Configuration
+API_HOST="0.0.0.0"
+API_PORT="8080"
+JWT_SECRET="your-secret-key"
 
-MIT License - see [LICENSE.md](LICENSE.md) for details.
+# Telemetry
+RUST_LOG="info,llm_benchmark=debug"
+OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4317"
+```
+
+---
+
+## 🏛️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              Presentation Layer                              │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
+│  │   REST API  │  │  gRPC API   │  │     CLI     │  │        SDK          │ │
+│  │   (Axum)    │  │   (Tonic)   │  │   (Clap)    │  │   (reqwest/async)   │ │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────────┬──────────┘ │
+└─────────┼────────────────┼────────────────┼────────────────────┼────────────┘
+          │                │                │                    │
+          ▼                ▼                ▼                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                             Application Layer                                │
+│  ┌─────────────────────────────────────────────────────────────────────────┐│
+│  │                         Application Services                             ││
+│  │  • BenchmarkService  • SubmissionService  • GovernanceService           ││
+│  │  • UserService       • OrganizationService • ScoringEngine              ││
+│  └─────────────────────────────────────────────────────────────────────────┘│
+│  ┌─────────────────────────────────────────────────────────────────────────┐│
+│  │                              Validation                                  ││
+│  │  • Input validation  • Business rules  • Authorization                  ││
+│  └─────────────────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                               Domain Layer                                   │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐ │
+│  │  Benchmark   │  │  Submission  │  │  Governance  │  │       User       │ │
+│  │   Entities   │  │   Entities   │  │   Entities   │  │     Entities     │ │
+│  └──────────────┘  └──────────────┘  └──────────────┘  └──────────────────┘ │
+│  ┌─────────────────────────────────────────────────────────────────────────┐│
+│  │                          Domain Events                                   ││
+│  └─────────────────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           Infrastructure Layer                               │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐ │
+│  │  PostgreSQL  │  │    Redis     │  │   S3/Minio   │  │    RabbitMQ      │ │
+│  │  Repository  │  │    Cache     │  │   Storage    │  │    Messaging     │ │
+│  └──────────────┘  └──────────────┘  └──────────────┘  └──────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Layer Responsibilities
+
+| Layer | Responsibility | Crates |
+|-------|----------------|--------|
+| **Presentation** | HTTP/gRPC handlers, CLI commands, SDK | `api-rest`, `api-grpc`, `cli`, `sdk` |
+| **Application** | Use cases, orchestration, validation | `application` |
+| **Domain** | Business entities, rules, events | `domain` |
+| **Infrastructure** | Database, cache, external services | `infrastructure` |
+
+---
+
+## 🚢 Deployment
+
+### Docker
+
+```bash
+# Build images
+docker build -f docker/Dockerfile -t llm-benchmark-api .
+docker build -f docker/Dockerfile.worker -t llm-benchmark-worker .
+
+# Run with docker-compose
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+### Kubernetes
+
+```bash
+# Apply manifests
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/
+
+# Or use Helm
+helm install llm-benchmark ./helm \
+  --namespace llm-benchmark \
+  --create-namespace \
+  --values helm/values.yaml
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read our contributing guidelines before submitting a PR.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+
+---
+
+<div align="center">
+
+**Built with ❤️ by the LLM Benchmark Exchange Community**
+
+[Report Bug](https://github.com/globalbusinessadvisors/llm-benchmark-exchange/issues) •
+[Request Feature](https://github.com/globalbusinessadvisors/llm-benchmark-exchange/issues) •
+[Discussions](https://github.com/globalbusinessadvisors/llm-benchmark-exchange/discussions)
+
+</div>

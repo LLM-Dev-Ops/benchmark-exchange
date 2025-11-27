@@ -1,0 +1,11 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: llm-benchmark
+  labels:
+    name: llm-benchmark
+    environment: production
+    app: llm-benchmark-exchange
+  annotations:
+    description: "LLM Benchmark Exchange - Decentralized platform for LLM evaluation"

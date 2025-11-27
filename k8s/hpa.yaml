@@ -1,0 +1,198 @@
+---
+# Horizontal Pod Autoscaler for API
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: llm-benchmark-api
+  namespace: llm-benchmark
+  labels:
+    app: llm-benchmark-exchange
+    component: api
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: llm-benchmark-api
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  # CPU utilization
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  # Memory utilization
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  # Custom metrics (requires metrics-server and custom metrics adapter)
+  # - type: Pods
+  #   pods:
+  #     metric:
+  #       name: http_requests_per_second
+  #     target:
+  #       type: AverageValue
+  #       averageValue: "1000"
+  # - type: External
+  #   external:
+  #     metric:
+  #       name: sqs_queue_length
+  #       selector:
+  #         matchLabels:
+  #           queue_name: llm-benchmark-jobs
+  #     target:
+  #       type: AverageValue
+  #       averageValue: "100"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+      - type: Pods
+        value: 1
+        periodSeconds: 60
+      selectPolicy: Min
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+      - type: Pods
+        value: 2
+        periodSeconds: 30
+      selectPolicy: Max
+
+---
+# Horizontal Pod Autoscaler for Worker
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: llm-benchmark-worker
+  namespace: llm-benchmark
+  labels:
+    app: llm-benchmark-exchange
+    component: worker
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: llm-benchmark-worker
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+  # CPU utilization
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75
+  # Memory utilization
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 85
+  # Custom metric: Redis queue length
+  # - type: External
+  #   external:
+  #     metric:
+  #       name: redis_queue_length
+  #       selector:
+  #         matchLabels:
+  #           queue_name: llm-benchmark-jobs
+  #     target:
+  #       type: AverageValue
+  #       averageValue: "50"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 600
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 120
+      selectPolicy: Min
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 60
+      - type: Pods
+        value: 2
+        periodSeconds: 60
+      selectPolicy: Max
+
+---
+# Vertical Pod Autoscaler (optional, requires VPA controller)
+# apiVersion: autoscaling.k8s.io/v1
+# kind: VerticalPodAutoscaler
+# metadata:
+#   name: llm-benchmark-api
+#   namespace: llm-benchmark
+# spec:
+#   targetRef:
+#     apiVersion: apps/v1
+#     kind: Deployment
+#     name: llm-benchmark-api
+#   updatePolicy:
+#     updateMode: "Auto"
+#   resourcePolicy:
+#     containerPolicies:
+#     - containerName: api
+#       minAllowed:
+#         cpu: 100m
+#         memory: 128Mi
+#       maxAllowed:
+#         cpu: 4000m
+#         memory: 4Gi
+#       controlledResources:
+#       - cpu
+#       - memory
+
+---
+# KEDA ScaledObject (alternative to HPA for event-driven autoscaling)
+# Requires KEDA operator: https://keda.sh/
+# apiVersion: keda.sh/v1alpha1
+# kind: ScaledObject
+# metadata:
+#   name: llm-benchmark-worker
+#   namespace: llm-benchmark
+# spec:
+#   scaleTargetRef:
+#     name: llm-benchmark-worker
+#   minReplicaCount: 2
+#   maxReplicaCount: 20
+#   pollingInterval: 30
+#   cooldownPeriod: 300
+#   triggers:
+#   # Redis queue length
+#   - type: redis
+#     metadata:
+#       addressFromEnv: REDIS_URL
+#       listName: llm-benchmark:jobs
+#       listLength: "10"
+#       activationListLength: "5"
+#   # PostgreSQL queue
+#   - type: postgresql
+#     metadata:
+#       connectionFromEnv: DATABASE_URL
+#       query: "SELECT COUNT(*) FROM jobs WHERE status = 'pending'"
+#       targetQueryValue: "5"
+#       activationQueryValue: "1"
+#   # Custom metrics
+#   - type: prometheus
+#     metadata:
+#       serverAddress: http://prometheus:9090
+#       metricName: jobs_pending_total
+#       query: sum(jobs_pending{namespace="llm-benchmark"})
+#       threshold: "10"

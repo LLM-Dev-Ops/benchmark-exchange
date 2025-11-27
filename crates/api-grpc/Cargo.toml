@@ -1,0 +1,57 @@
+[package]
+name = "llm-benchmark-api-grpc"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+# Internal dependencies
+llm-benchmark-domain = { workspace = true }
+llm-benchmark-common = { workspace = true }
+llm-benchmark-application = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true }
+async-trait = { workspace = true }
+
+# gRPC
+tonic = { workspace = true }
+prost = { workspace = true }
+prost-types = { workspace = true }
+tonic-health = "0.11"
+tonic-reflection = { version = "0.11", optional = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Date and time
+chrono = { workspace = true }
+
+# UUID
+uuid = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Logging and tracing
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+opentelemetry = { workspace = true }
+opentelemetry-otlp = { workspace = true }
+
+# Utilities
+futures = { workspace = true }
+bytes = { workspace = true }
+
+[build-dependencies]
+tonic-build = "0.11"
+
+[features]
+reflection = ["tonic-reflection"]
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }

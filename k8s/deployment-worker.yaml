@@ -1,0 +1,241 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: llm-benchmark-worker
+  namespace: llm-benchmark
+  labels:
+    app: llm-benchmark-exchange
+    component: worker
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-benchmark-worker
+  namespace: llm-benchmark
+  labels:
+    app: llm-benchmark-exchange
+    component: worker
+    version: v1
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: llm-benchmark-exchange
+      component: worker
+  template:
+    metadata:
+      labels:
+        app: llm-benchmark-exchange
+        component: worker
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: llm-benchmark-worker
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+
+      # Init containers
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox:1.36
+        command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done;']
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+
+      - name: wait-for-redis
+        image: busybox:1.36
+        command: ['sh', '-c', 'until nc -z redis 6379; do echo waiting for redis; sleep 2; done;']
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+
+      containers:
+      - name: worker
+        image: ghcr.io/llm-benchmark-exchange/worker:latest
+        imagePullPolicy: Always
+
+        env:
+        # Environment from ConfigMap
+        - name: RUST_LOG
+          valueFrom:
+            configMapKeyRef:
+              name: llm-benchmark-config
+              key: RUST_LOG
+        - name: WORKER_POOL_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: llm-benchmark-config
+              key: WORKER_POOL_SIZE
+        - name: WORKER_SCHEDULER_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: llm-benchmark-config
+              key: WORKER_SCHEDULER_ENABLED
+        - name: METRICS_INTERVAL
+          valueFrom:
+            configMapKeyRef:
+              name: llm-benchmark-config
+              key: METRICS_INTERVAL
+        - name: DATABASE_MAX_CONNECTIONS
+          valueFrom:
+            configMapKeyRef:
+              name: llm-benchmark-config
+              key: DATABASE_MAX_CONNECTIONS
+        - name: S3_REGION
+          valueFrom:
+            configMapKeyRef:
+              name: llm-benchmark-config
+              key: S3_REGION
+        - name: S3_BUCKET
+          valueFrom:
+            configMapKeyRef:
+              name: llm-benchmark-config
+              key: S3_BUCKET
+
+        # Secrets
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: llm-benchmark-secrets
+              key: database-url
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: llm-benchmark-secrets
+              key: aws-access-key-id
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: llm-benchmark-secrets
+              key: aws-secret-access-key
+
+        # Service discovery
+        - name: REDIS_URL
+          value: "redis://redis:6379"
+        - name: POSTGRES_HOST
+          value: "postgres"
+        - name: POSTGRES_PORT
+          value: "5432"
+
+        # Kubernetes-specific
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 1Gi
+          limits:
+            cpu: 4000m
+            memory: 4Gi
+
+        # Health checks for worker
+        # Since worker doesn't expose HTTP endpoint, we check the process
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - pgrep -x llm-benchmark-wo || exit 1
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - pgrep -x llm-benchmark-wo || exit 1
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: work
+          mountPath: /app/work
+
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: work
+        emptyDir:
+          sizeLimit: 10Gi
+
+      # Node affinity and tolerations
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: llm-benchmark-exchange
+                  component: worker
+              topologyKey: kubernetes.io/hostname
+
+      # Topology spread constraints
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app: llm-benchmark-exchange
+            component: worker
+
+      terminationGracePeriodSeconds: 60
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always

@@ -1,0 +1,257 @@
+version: '3.8'
+
+# =============================================================================
+# LLM Benchmark Exchange - Production Overlay
+# =============================================================================
+# This overlay extends docker-compose.yml with production-specific settings:
+# - Service replicas for high availability
+# - Resource limits and reservations
+# - Enhanced health checks
+# - Secrets management
+# - Production logging
+#
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+# =============================================================================
+
+services:
+  # ===========================================================================
+  # API Service - Production configuration
+  # ===========================================================================
+  api:
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      rollback_config:
+        parallelism: 1
+        delay: 5s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    environment:
+      # Override for production
+      RUST_LOG: info
+      RUST_BACKTRACE: 0
+
+      # Database - use secrets
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      DATABASE_MAX_CONNECTIONS: 50
+      DATABASE_MIN_CONNECTIONS: 10
+
+      # Security
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+
+      # Production S3 (real AWS S3)
+      S3_ENDPOINT: ${S3_ENDPOINT:-https://s3.amazonaws.com}
+      S3_REGION: ${AWS_REGION:-us-east-1}
+      S3_BUCKET: ${S3_BUCKET}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      S3_PATH_STYLE: "false"
+
+      # Rate limiting - stricter in production
+      RATE_LIMIT_REQUESTS: 60
+      RATE_LIMIT_WINDOW: 60
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    volumes: []  # Remove development mounts
+
+  # ===========================================================================
+  # Worker Service - Production configuration
+  # ===========================================================================
+  worker:
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    environment:
+      # Override for production
+      RUST_LOG: info
+      RUST_BACKTRACE: 0
+      WORKER_POOL_SIZE: 8
+
+      # Database
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      DATABASE_MAX_CONNECTIONS: 20
+
+      # Production S3
+      S3_ENDPOINT: ${S3_ENDPOINT:-https://s3.amazonaws.com}
+      S3_REGION: ${AWS_REGION:-us-east-1}
+      S3_BUCKET: ${S3_BUCKET}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      S3_PATH_STYLE: "false"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================================================
+  # PostgreSQL - Production configuration
+  # ===========================================================================
+  postgres:
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '2'
+          memory: 4G
+    environment:
+      POSTGRES_DB: ${DB_NAME:-llm_benchmark_exchange}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      # Production performance tuning
+      POSTGRES_MAX_CONNECTIONS: 200
+      POSTGRES_SHARED_BUFFERS: 2GB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 6GB
+      POSTGRES_MAINTENANCE_WORK_MEM: 512MB
+      POSTGRES_CHECKPOINT_COMPLETION_TARGET: 0.9
+      POSTGRES_WAL_BUFFERS: 16MB
+      POSTGRES_DEFAULT_STATISTICS_TARGET: 100
+      POSTGRES_RANDOM_PAGE_COST: 1.1
+      POSTGRES_EFFECTIVE_IO_CONCURRENCY: 200
+      POSTGRES_WORK_MEM: 16MB
+      POSTGRES_MIN_WAL_SIZE: 2GB
+      POSTGRES_MAX_WAL_SIZE: 8GB
+    command: >
+      postgres
+      -c max_connections=200
+      -c shared_buffers=2GB
+      -c effective_cache_size=6GB
+      -c maintenance_work_mem=512MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=16MB
+      -c min_wal_size=2GB
+      -c max_wal_size=8GB
+      -c max_worker_processes=4
+      -c max_parallel_workers_per_gather=2
+      -c max_parallel_workers=4
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    # Use named volume or external storage in production
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+
+  # ===========================================================================
+  # Redis - Production configuration
+  # ===========================================================================
+  redis:
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 1536mb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --tcp-backlog 511
+      --timeout 0
+      --tcp-keepalive 300
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    volumes:
+      - redis_prod_data:/data
+
+  # ===========================================================================
+  # Disable development-only services
+  # ===========================================================================
+  minio:
+    deploy:
+      replicas: 0
+
+  minio-init:
+    deploy:
+      replicas: 0
+
+  pgadmin:
+    deploy:
+      replicas: 0
+
+# =============================================================================
+# Production Volumes
+# =============================================================================
+volumes:
+  postgres_prod_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${POSTGRES_DATA_PATH:-/data/postgres}
+      o: bind
+
+  redis_prod_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${REDIS_DATA_PATH:-/data/redis}
+      o: bind
+
+# =============================================================================
+# Secrets (for Docker Swarm)
+# =============================================================================
+# For Docker Swarm, define secrets here and reference them in services
+# For Kubernetes, use Kubernetes secrets instead
+secrets:
+  db_password:
+    external: true
+  jwt_secret:
+    external: true
+  aws_access_key:
+    external: true
+  aws_secret_key:
+    external: true

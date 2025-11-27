@@ -1,0 +1,31 @@
+{
+  "pool_size": 4,
+  "redis_url": "redis://localhost:6379",
+  "database_url": "postgresql://localhost:5432/llm_benchmark",
+  "queue": {
+    "prefix": "llm-benchmark",
+    "default_queue": "jobs",
+    "priority_queues": {
+      "critical": "jobs:critical",
+      "high": "jobs:high",
+      "normal": "jobs:normal",
+      "low": "jobs:low"
+    },
+    "blocking_timeout": 5,
+    "max_retries": 3,
+    "dead_letter_queue": "jobs:dlq",
+    "visibility_timeout": 300
+  },
+  "retry": {
+    "max_attempts": 3,
+    "initial_backoff": 5,
+    "max_backoff": 300,
+    "backoff_multiplier": 2.0,
+    "exponential_backoff": true
+  },
+  "scheduler": {
+    "enabled": true,
+    "tick_interval": 60,
+    "max_jobs_per_tick": 100
+  }
+}

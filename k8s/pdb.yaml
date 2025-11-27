@@ -1,0 +1,70 @@
+---
+# Pod Disruption Budget for API
+# Ensures high availability during voluntary disruptions (node drains, updates, etc.)
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: llm-benchmark-api
+  namespace: llm-benchmark
+  labels:
+    app: llm-benchmark-exchange
+    component: api
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: llm-benchmark-exchange
+      component: api
+  # Alternative: use maxUnavailable instead
+  # maxUnavailable: 1
+
+---
+# Pod Disruption Budget for Worker
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: llm-benchmark-worker
+  namespace: llm-benchmark
+  labels:
+    app: llm-benchmark-exchange
+    component: worker
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: llm-benchmark-exchange
+      component: worker
+
+---
+# Pod Disruption Budget for Database (if using StatefulSet)
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: llm-benchmark-postgres
+  namespace: llm-benchmark
+  labels:
+    app: llm-benchmark-exchange
+    component: database
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: llm-benchmark-exchange
+      component: database
+
+---
+# Pod Disruption Budget for Redis (if using StatefulSet)
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: llm-benchmark-redis
+  namespace: llm-benchmark
+  labels:
+    app: llm-benchmark-exchange
+    component: cache
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: llm-benchmark-exchange
+      component: cache

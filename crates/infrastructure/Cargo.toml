@@ -1,0 +1,58 @@
+[package]
+name = "llm-benchmark-infrastructure"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+# Internal dependencies
+llm-benchmark-domain = { workspace = true }
+llm-benchmark-common = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true }
+async-trait = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Date and time
+chrono = { workspace = true }
+
+# UUID
+uuid = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Logging and tracing
+tracing = { workspace = true }
+
+# Database
+sqlx = { workspace = true }
+
+# Cache
+redis = { workspace = true }
+
+# Cloud storage
+aws-sdk-s3 = { workspace = true }
+aws-config = "1.0"
+
+# Configuration
+config = { workspace = true }
+
+# Utilities
+futures = { workspace = true }
+bytes = { workspace = true }
+url = { workspace = true }
+
+[dev-dependencies]
+llm-benchmark-testing = { workspace = true }
+fake = { workspace = true }
+proptest = { workspace = true }
+testcontainers = { workspace = true }
+tokio = { workspace = true, features = ["test-util"] }

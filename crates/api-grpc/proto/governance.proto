@@ -1,0 +1,163 @@
+syntax = "proto3";
+
+package llm_benchmark.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+// GovernanceService provides operations for community governance
+service GovernanceService {
+  // Create a new proposal
+  rpc CreateProposal(CreateProposalRequest) returns (CreateProposalResponse);
+
+  // Get a specific proposal
+  rpc GetProposal(GetProposalRequest) returns (GetProposalResponse);
+
+  // List proposals with filtering
+  rpc ListProposals(ListProposalsRequest) returns (ListProposalsResponse);
+
+  // Cast a vote on a proposal
+  rpc CastVote(CastVoteRequest) returns (CastVoteResponse);
+}
+
+// Proposal types
+enum ProposalType {
+  PROPOSAL_TYPE_UNSPECIFIED = 0;
+  PROPOSAL_TYPE_NEW_BENCHMARK = 1;
+  PROPOSAL_TYPE_UPDATE_BENCHMARK = 2;
+  PROPOSAL_TYPE_DEPRECATE_BENCHMARK = 3;
+  PROPOSAL_TYPE_POLICY_CHANGE = 4;
+}
+
+// Proposal status
+enum ProposalStatus {
+  PROPOSAL_STATUS_UNSPECIFIED = 0;
+  PROPOSAL_STATUS_DRAFT = 1;
+  PROPOSAL_STATUS_UNDER_REVIEW = 2;
+  PROPOSAL_STATUS_VOTING = 3;
+  PROPOSAL_STATUS_APPROVED = 4;
+  PROPOSAL_STATUS_REJECTED = 5;
+  PROPOSAL_STATUS_WITHDRAWN = 6;
+}
+
+// Vote type
+enum Vote {
+  VOTE_UNSPECIFIED = 0;
+  VOTE_APPROVE = 1;
+  VOTE_REJECT = 2;
+  VOTE_ABSTAIN = 3;
+}
+
+// Review status
+enum ReviewStatus {
+  REVIEW_STATUS_UNSPECIFIED = 0;
+  REVIEW_STATUS_PENDING = 1;
+  REVIEW_STATUS_APPROVED = 2;
+  REVIEW_STATUS_REQUEST_CHANGES = 3;
+  REVIEW_STATUS_REJECTED = 4;
+}
+
+// Voting state
+message VotingState {
+  google.protobuf.Timestamp voting_starts = 1;
+  google.protobuf.Timestamp voting_ends = 2;
+  uint32 votes_for = 3;
+  uint32 votes_against = 4;
+  uint32 votes_abstain = 5;
+  repeated string voters = 6;
+  uint32 quorum_required = 7;
+  double approval_threshold = 8;
+}
+
+// Line reference
+message LineReference {
+  string file = 1;
+  uint32 start_line = 2;
+  google.protobuf.UInt32Value end_line = 3;
+}
+
+// Review comment
+message ReviewComment {
+  string content = 1;
+  repeated LineReference line_references = 2;
+}
+
+// Review
+message Review {
+  string reviewer_id = 1;
+  ReviewStatus status = 2;
+  repeated ReviewComment comments = 3;
+  google.protobuf.Timestamp submitted_at = 4;
+}
+
+// Proposal
+message Proposal {
+  string id = 1;
+  ProposalType proposal_type = 2;
+  string title = 3;
+  string description = 4;
+  string created_by = 5;
+  ProposalStatus status = 6;
+  google.protobuf.StringValue benchmark_id = 7;
+  string rationale = 8;
+  VotingState voting = 9;
+  repeated Review reviews = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}
+
+// Create proposal request
+message CreateProposalRequest {
+  ProposalType proposal_type = 1;
+  string title = 2;
+  string description = 3;
+  google.protobuf.StringValue benchmark_id = 4;
+  string rationale = 5;
+}
+
+// Create proposal response
+message CreateProposalResponse {
+  Proposal proposal = 1;
+}
+
+// Get proposal request
+message GetProposalRequest {
+  string id = 1;
+}
+
+// Get proposal response
+message GetProposalResponse {
+  Proposal proposal = 1;
+}
+
+// List proposals request
+message ListProposalsRequest {
+  ProposalType proposal_type = 1;
+  ProposalStatus status = 2;
+  google.protobuf.StringValue created_by = 3;
+  uint32 page = 4;
+  uint32 page_size = 5;
+  string sort_by = 6;
+  bool sort_desc = 7;
+}
+
+// List proposals response
+message ListProposalsResponse {
+  repeated Proposal proposals = 1;
+  uint32 total_count = 2;
+  uint32 page = 3;
+  uint32 page_size = 4;
+}
+
+// Cast vote request
+message CastVoteRequest {
+  string proposal_id = 1;
+  Vote vote = 2;
+  google.protobuf.StringValue comment = 3;
+}
+
+// Cast vote response
+message CastVoteResponse {
+  Proposal proposal = 1;
+  string vote_recorded = 2;
+}

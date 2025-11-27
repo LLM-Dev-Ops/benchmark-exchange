@@ -1,0 +1,98 @@
+# SQLx Configuration for LLM Benchmark Exchange
+# https://github.com/launchbadge/sqlx/blob/main/sqlx-cli/README.md
+
+[db]
+# Database URL (can be overridden by DATABASE_URL environment variable)
+# Example: postgresql://user:password@localhost:5432/llm_benchmark_exchange
+database_url = "postgresql://localhost:5432/llm_benchmark_exchange"
+
+# Migration settings
+[migrations]
+# Directory containing migration files
+migration_dir = "migrations"
+
+# Whether to run migrations in a transaction
+# Set to false if migrations contain statements that cannot run in a transaction
+# (e.g., CREATE INDEX CONCURRENTLY)
+transactional = true
+
+# Create database if it doesn't exist when running migrations
+create_database = true
+
+# Table name for tracking applied migrations
+migrations_table = "_sqlx_migrations"
+
+# Locking strategy for migrations
+# Options: "none", "table", "advisory"
+locking = "advisory"
+
+# SQLx offline mode settings
+[offline]
+# Enable offline mode (useful for CI/CD without database)
+enabled = false
+
+# Directory for cached query metadata
+offline_dir = ".sqlx"
+
+# Database settings
+[database]
+# Maximum number of connections in the pool
+max_connections = 20
+
+# Minimum number of idle connections
+min_connections = 5
+
+# Connection timeout in seconds
+connect_timeout = 30
+
+# Idle connection timeout in seconds
+idle_timeout = 600
+
+# Maximum lifetime of a connection in seconds
+max_lifetime = 1800
+
+# Enable statement caching
+statement_cache_capacity = 100
+
+# Logging settings
+[logging]
+# Log level for SQLx operations
+# Options: "trace", "debug", "info", "warn", "error"
+level = "info"
+
+# Log slow queries (threshold in milliseconds)
+slow_query_threshold = 1000
+
+# Development settings
+[development]
+# Automatically compile-time verify queries
+verify_queries = true
+
+# Check queries against database schema at compile time
+check_queries = true
+
+# Generate Rust types from database schema
+generate_types = true
+
+# Production settings
+[production]
+# Use prepared statements
+use_prepared_statements = true
+
+# Enable query caching
+cache_queries = true
+
+# Connection pool settings for production
+max_connections = 50
+min_connections = 10
+
+# Testing settings
+[test]
+# Test database URL (can be overridden by TEST_DATABASE_URL)
+database_url = "postgresql://localhost:5432/llm_benchmark_exchange_test"
+
+# Reset database before each test run
+reset_database = true
+
+# Run migrations before tests
+run_migrations = true

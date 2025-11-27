@@ -1,0 +1,186 @@
+syntax = "proto3";
+
+package llm_benchmark.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+// BenchmarkService provides operations for managing benchmarks
+service BenchmarkService {
+  // Create a new benchmark (draft state)
+  rpc CreateBenchmark(CreateBenchmarkRequest) returns (CreateBenchmarkResponse);
+
+  // Get a specific benchmark by ID
+  rpc GetBenchmark(GetBenchmarkRequest) returns (GetBenchmarkResponse);
+
+  // List benchmarks with filtering and pagination
+  rpc ListBenchmarks(ListBenchmarksRequest) returns (ListBenchmarksResponse);
+
+  // Update an existing benchmark
+  rpc UpdateBenchmark(UpdateBenchmarkRequest) returns (UpdateBenchmarkResponse);
+
+  // Submit a benchmark for review
+  rpc SubmitForReview(SubmitForReviewRequest) returns (SubmitForReviewResponse);
+
+  // Approve a benchmark (requires reviewer role)
+  rpc ApproveBenchmark(ApproveBenchmarkRequest) returns (ApproveBenchmarkResponse);
+
+  // Reject a benchmark (requires reviewer role)
+  rpc RejectBenchmark(RejectBenchmarkRequest) returns (RejectBenchmarkResponse);
+}
+
+// Benchmark categories
+enum BenchmarkCategory {
+  BENCHMARK_CATEGORY_UNSPECIFIED = 0;
+  BENCHMARK_CATEGORY_PERFORMANCE = 1;
+  BENCHMARK_CATEGORY_ACCURACY = 2;
+  BENCHMARK_CATEGORY_RELIABILITY = 3;
+  BENCHMARK_CATEGORY_SAFETY = 4;
+  BENCHMARK_CATEGORY_COST = 5;
+  BENCHMARK_CATEGORY_CAPABILITY = 6;
+}
+
+// Benchmark lifecycle status
+enum BenchmarkStatus {
+  BENCHMARK_STATUS_UNSPECIFIED = 0;
+  BENCHMARK_STATUS_DRAFT = 1;
+  BENCHMARK_STATUS_UNDER_REVIEW = 2;
+  BENCHMARK_STATUS_ACTIVE = 3;
+  BENCHMARK_STATUS_DEPRECATED = 4;
+  BENCHMARK_STATUS_ARCHIVED = 5;
+}
+
+// License types
+enum LicenseType {
+  LICENSE_TYPE_UNSPECIFIED = 0;
+  LICENSE_TYPE_APACHE_2 = 1;
+  LICENSE_TYPE_MIT = 2;
+  LICENSE_TYPE_BSD_3_CLAUSE = 3;
+  LICENSE_TYPE_CC_BY_4_0 = 4;
+  LICENSE_TYPE_CC_BY_SA_4_0 = 5;
+  LICENSE_TYPE_CUSTOM = 6;
+}
+
+// Benchmark metadata
+message BenchmarkMetadata {
+  string name = 1;
+  string slug = 2;
+  string description = 3;
+  google.protobuf.StringValue long_description = 4;
+  repeated string tags = 5;
+  LicenseType license = 6;
+  google.protobuf.StringValue custom_license = 7;
+  Citation citation = 8;
+  google.protobuf.StringValue documentation_url = 9;
+  google.protobuf.StringValue source_url = 10;
+  repeated string maintainer_ids = 11;
+}
+
+// Academic citation
+message Citation {
+  string title = 1;
+  repeated string authors = 2;
+  google.protobuf.StringValue venue = 3;
+  uint32 year = 4;
+  google.protobuf.StringValue doi = 5;
+  google.protobuf.StringValue bibtex = 6;
+}
+
+// Full benchmark definition
+message Benchmark {
+  string id = 1;
+  BenchmarkMetadata metadata = 2;
+  BenchmarkCategory category = 3;
+  BenchmarkStatus status = 4;
+  string version = 5;
+  string version_id = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+  string created_by = 9;
+}
+
+// Create benchmark request
+message CreateBenchmarkRequest {
+  BenchmarkMetadata metadata = 1;
+  BenchmarkCategory category = 2;
+  string version = 3;
+}
+
+// Create benchmark response
+message CreateBenchmarkResponse {
+  Benchmark benchmark = 1;
+}
+
+// Get benchmark request
+message GetBenchmarkRequest {
+  string id = 1;
+  google.protobuf.StringValue version = 2;
+}
+
+// Get benchmark response
+message GetBenchmarkResponse {
+  Benchmark benchmark = 1;
+}
+
+// List benchmarks request
+message ListBenchmarksRequest {
+  BenchmarkCategory category = 1;
+  BenchmarkStatus status = 2;
+  repeated string tags = 3;
+  google.protobuf.StringValue search_query = 4;
+  uint32 page = 5;
+  uint32 page_size = 6;
+  string sort_by = 7;
+  bool sort_desc = 8;
+}
+
+// List benchmarks response
+message ListBenchmarksResponse {
+  repeated Benchmark benchmarks = 1;
+  uint32 total_count = 2;
+  uint32 page = 3;
+  uint32 page_size = 4;
+}
+
+// Update benchmark request
+message UpdateBenchmarkRequest {
+  string id = 1;
+  BenchmarkMetadata metadata = 2;
+}
+
+// Update benchmark response
+message UpdateBenchmarkResponse {
+  Benchmark benchmark = 1;
+}
+
+// Submit for review request
+message SubmitForReviewRequest {
+  string id = 1;
+}
+
+// Submit for review response
+message SubmitForReviewResponse {
+  Benchmark benchmark = 1;
+}
+
+// Approve benchmark request
+message ApproveBenchmarkRequest {
+  string id = 1;
+  google.protobuf.StringValue review_notes = 2;
+}
+
+// Approve benchmark response
+message ApproveBenchmarkResponse {
+  Benchmark benchmark = 1;
+}
+
+// Reject benchmark request
+message RejectBenchmarkRequest {
+  string id = 1;
+  string reason = 2;
+}
+
+// Reject benchmark response
+message RejectBenchmarkResponse {
+  Benchmark benchmark = 1;
+}

@@ -1,0 +1,240 @@
+---
+# Database Migration Job
+# Run this job to apply database migrations before deploying new versions
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: llm-benchmark-migration
+  namespace: llm-benchmark
+  labels:
+    app: llm-benchmark-exchange
+    component: migration
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 600
+  template:
+    metadata:
+      labels:
+        app: llm-benchmark-exchange
+        component: migration
+    spec:
+      serviceAccountName: llm-benchmark-api
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      initContainers:
+      # Wait for PostgreSQL to be ready
+      - name: wait-for-postgres
+        image: postgres:15-alpine
+        command:
+        - sh
+        - -c
+        - |
+          until pg_isready -h postgres -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL to be ready..."
+            sleep 2
+          done
+        env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: llm-benchmark-secrets
+              key: database-password
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1000
+
+      containers:
+      - name: migrate
+        image: ghcr.io/llm-benchmark-exchange/api:latest
+        command:
+        - sh
+        - -c
+        - |
+          echo "Running database migrations..."
+          # If using SQLx migrations
+          sqlx migrate run
+          # Or custom migration script
+          # /app/migrate.sh
+          echo "Migrations completed successfully"
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: llm-benchmark-secrets
+              key: database-url
+        - name: RUST_LOG
+          value: "info"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+
+      volumes:
+      - name: tmp
+        emptyDir: {}
+
+---
+# CronJob for periodic database maintenance tasks
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: llm-benchmark-db-maintenance
+  namespace: llm-benchmark
+  labels:
+    app: llm-benchmark-exchange
+    component: maintenance
+spec:
+  schedule: "0 2 * * 0"  # Every Sunday at 2 AM
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 3600
+      template:
+        metadata:
+          labels:
+            app: llm-benchmark-exchange
+            component: maintenance
+        spec:
+          serviceAccountName: llm-benchmark-api
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            fsGroup: 1000
+
+          containers:
+          - name: maintenance
+            image: postgres:15-alpine
+            command:
+            - sh
+            - -c
+            - |
+              echo "Running database maintenance tasks..."
+
+              # VACUUM ANALYZE
+              psql "$DATABASE_URL" -c "VACUUM ANALYZE;"
+
+              # Refresh materialized views
+              psql "$DATABASE_URL" -c "SELECT refresh_all_materialized_views();"
+
+              # Create next month partitions
+              psql "$DATABASE_URL" -c "SELECT create_next_month_partitions();"
+
+              # Clean up old partitions (older than 12 months)
+              # psql "$DATABASE_URL" -c "SELECT drop_old_partitions(12);"
+
+              echo "Maintenance tasks completed"
+            env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: llm-benchmark-secrets
+                  key: database-url
+            resources:
+              requests:
+                cpu: 500m
+                memory: 512Mi
+              limits:
+                cpu: 2000m
+                memory: 2Gi
+            securityContext:
+              allowPrivilegeEscalation: false
+              runAsNonRoot: true
+              runAsUser: 1000
+              capabilities:
+                drop:
+                - ALL
+
+---
+# Job to seed initial data (run once)
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: llm-benchmark-seed
+  namespace: llm-benchmark
+  labels:
+    app: llm-benchmark-exchange
+    component: seed
+spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: 300
+  template:
+    metadata:
+      labels:
+        app: llm-benchmark-exchange
+        component: seed
+    spec:
+      serviceAccountName: llm-benchmark-api
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      containers:
+      - name: seed
+        image: ghcr.io/llm-benchmark-exchange/api:latest
+        command:
+        - sh
+        - -c
+        - |
+          echo "Seeding initial data..."
+          # Run seed script
+          # /app/seed.sh
+          echo "Seed completed"
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: llm-benchmark-secrets
+              key: database-url
+        - name: RUST_LOG
+          value: "info"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+
+      volumes:
+      - name: tmp
+        emptyDir: {}

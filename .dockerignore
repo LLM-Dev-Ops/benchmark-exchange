@@ -1,0 +1,84 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+
+# Documentation
+*.md
+docs/
+plans/
+
+# Development
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Rust
+target/
+**/*.rs.bk
+*.pdb
+.cargo/
+
+# Database
+*.db
+*.sqlite
+*.sql
+backups/
+migrations/
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.*
+*.local
+
+# Testing
+coverage/
+.tarpaulin/
+
+# Build artifacts
+dist/
+build/
+out/
+
+# Dependencies
+node_modules/
+vendor/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+*.sublime-*
+*.code-workspace
+
+# Docker
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# Kubernetes
+k8s/
+helm/
+
+# Misc
+*.bak
+*.cache
+.sqlx/

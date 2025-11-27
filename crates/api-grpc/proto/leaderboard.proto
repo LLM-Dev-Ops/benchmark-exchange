@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+package llm_benchmark.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+import "benchmark.proto";
+
+// LeaderboardService provides operations for retrieving leaderboard data
+service LeaderboardService {
+  // Get the full leaderboard for a benchmark
+  rpc GetLeaderboard(GetLeaderboardRequest) returns (GetLeaderboardResponse);
+
+  // Get leaderboard for a specific category
+  rpc GetCategoryLeaderboard(GetCategoryLeaderboardRequest) returns (GetCategoryLeaderboardResponse);
+
+  // Compare multiple models
+  rpc CompareModels(CompareModelsRequest) returns (CompareModelsResponse);
+}
+
+// Leaderboard entry
+message LeaderboardEntry {
+  uint32 rank = 1;
+  string submission_id = 2;
+  string model_provider = 3;
+  string model_name = 4;
+  google.protobuf.StringValue model_version = 5;
+  double aggregate_score = 6;
+  map<string, double> metric_scores = 7;
+  string verification_level = 8;
+  google.protobuf.Timestamp submitted_at = 9;
+  google.protobuf.StringValue organization_name = 10;
+  bool is_official = 11;
+}
+
+// Category-specific ranking
+message CategoryRanking {
+  BenchmarkCategory category = 1;
+  repeated LeaderboardEntry entries = 2;
+  uint32 total_entries = 3;
+}
+
+// Model comparison result
+message ModelComparison {
+  string model_a_name = 1;
+  string model_b_name = 2;
+  double score_difference = 3;
+  double percent_difference = 4;
+  map<string, double> metric_differences = 5;
+  bool statistically_significant = 6;
+  google.protobuf.DoubleValue p_value = 7;
+}
+
+// Get leaderboard request
+message GetLeaderboardRequest {
+  string benchmark_id = 1;
+  google.protobuf.StringValue version = 2;
+  string verification_level = 3;
+  uint32 limit = 4;
+  uint32 offset = 5;
+}
+
+// Get leaderboard response
+message GetLeaderboardResponse {
+  string benchmark_id = 1;
+  string benchmark_name = 2;
+  string version = 3;
+  repeated LeaderboardEntry entries = 4;
+  uint32 total_entries = 5;
+  google.protobuf.Timestamp last_updated = 6;
+}
+
+// Get category leaderboard request
+message GetCategoryLeaderboardRequest {
+  BenchmarkCategory category = 1;
+  string verification_level = 2;
+  uint32 limit = 3;
+}
+
+// Get category leaderboard response
+message GetCategoryLeaderboardResponse {
+  BenchmarkCategory category = 1;
+  repeated CategoryRanking rankings = 2;
+  google.protobuf.Timestamp last_updated = 3;
+}
+
+// Compare models request
+message CompareModelsRequest {
+  string benchmark_id = 1;
+  repeated string submission_ids = 2;
+  bool include_statistical_tests = 3;
+}
+
+// Compare models response
+message CompareModelsResponse {
+  repeated LeaderboardEntry models = 1;
+  repeated ModelComparison comparisons = 2;
+  string benchmark_name = 3;
+}

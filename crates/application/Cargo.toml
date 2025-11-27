@@ -1,0 +1,47 @@
+[package]
+name = "llm-benchmark-application"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+# Internal dependencies
+llm-benchmark-domain = { workspace = true }
+llm-benchmark-common = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true }
+async-trait = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Date and time
+chrono = { workspace = true }
+
+# UUID
+uuid = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Logging and tracing
+tracing = { workspace = true }
+
+# Validation
+validator = { workspace = true }
+
+# Utilities
+futures = { workspace = true }
+url = { workspace = true }
+regex = "1.10"
+
+[dev-dependencies]
+llm-benchmark-testing = { workspace = true }
+fake = { workspace = true }
+proptest = { workspace = true }
+tokio = { workspace = true, features = ["test-util"] }

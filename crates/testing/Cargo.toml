@@ -1,0 +1,45 @@
+[package]
+name = "llm-benchmark-testing"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+# Internal dependencies
+llm-benchmark-domain = { workspace = true }
+llm-benchmark-common = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true }
+async-trait = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Date and time
+chrono = { workspace = true }
+
+# UUID
+uuid = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+
+# Testing utilities
+fake = { workspace = true }
+proptest = { workspace = true }
+testcontainers = { workspace = true }
+wiremock = { workspace = true }
+
+# Utilities
+futures = { workspace = true }
+parking_lot = { workspace = true }
+
+# Database
+sqlx = { workspace = true }
+
+# Cache
+redis = { workspace = true }

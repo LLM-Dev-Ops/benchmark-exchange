@@ -1,0 +1,48 @@
+apiVersion: v2
+name: llm-benchmark-exchange
+description: A Helm chart for LLM Benchmark Exchange - Decentralized platform for LLM evaluation
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+
+keywords:
+  - llm
+  - benchmark
+  - evaluation
+  - machine-learning
+  - ai
+
+home: https://github.com/llm-benchmark-exchange/llm-benchmark-exchange
+sources:
+  - https://github.com/llm-benchmark-exchange/llm-benchmark-exchange
+
+maintainers:
+  - name: LLM Benchmark Exchange Team
+    email: team@llm-benchmark.example.com
+
+dependencies:
+  # PostgreSQL database
+  - name: postgresql
+    version: "13.x.x"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+    tags:
+      - database
+
+  # Redis cache
+  - name: redis
+    version: "18.x.x"
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+    tags:
+      - cache
+
+  # cert-manager for TLS certificates (optional)
+  # - name: cert-manager
+  #   version: "v1.13.x"
+  #   repository: https://charts.jetstack.io
+  #   condition: cert-manager.enabled
+
+annotations:
+  category: Application
+  licenses: MIT

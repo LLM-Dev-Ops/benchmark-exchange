@@ -1,0 +1,123 @@
+---
+# ClusterIP Service for internal API access
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-benchmark-api
+  namespace: llm-benchmark
+  labels:
+    app: llm-benchmark-exchange
+    component: api
+spec:
+  type: ClusterIP
+  selector:
+    app: llm-benchmark-exchange
+    component: api
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
+  sessionAffinity: None
+
+---
+# LoadBalancer Service (optional, for direct external access)
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-benchmark-api-external
+  namespace: llm-benchmark
+  labels:
+    app: llm-benchmark-exchange
+    component: api
+  annotations:
+    # AWS Load Balancer Controller annotations
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    # GCP annotations
+    # cloud.google.com/load-balancer-type: "External"
+    # Azure annotations
+    # service.beta.kubernetes.io/azure-load-balancer-internal: "false"
+spec:
+  type: LoadBalancer
+  selector:
+    app: llm-benchmark-exchange
+    component: api
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
+  - name: https
+    port: 443
+    targetPort: http
+    protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+
+---
+# Headless Service for StatefulSet (if needed)
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-benchmark-api-headless
+  namespace: llm-benchmark
+  labels:
+    app: llm-benchmark-exchange
+    component: api
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: llm-benchmark-exchange
+    component: api
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
+
+---
+# PostgreSQL Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: llm-benchmark
+  labels:
+    app: llm-benchmark-exchange
+    component: database
+spec:
+  type: ClusterIP
+  selector:
+    app: llm-benchmark-exchange
+    component: database
+  ports:
+  - name: postgres
+    port: 5432
+    targetPort: 5432
+    protocol: TCP
+
+---
+# Redis Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: llm-benchmark
+  labels:
+    app: llm-benchmark-exchange
+    component: cache
+spec:
+  type: ClusterIP
+  selector:
+    app: llm-benchmark-exchange
+    component: cache
+  ports:
+  - name: redis
+    port: 6379
+    targetPort: 6379
+    protocol: TCP

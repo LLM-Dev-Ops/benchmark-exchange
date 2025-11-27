@@ -1,0 +1,56 @@
+# Rust
+/target/
+**/*.rs.bk
+*.pdb
+Cargo.lock
+
+# Node.js
+node_modules/
+package-lock.json
+
+# Claude Flow (local state)
+.claude-flow/
+plans/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Testing
+coverage/
+*.profdata
+
+# Build artifacts
+dist/
+build/
+
+# Documentation
+/target/doc/
+
+# Backup files
+*.bak
+*.tmp
+*.temp
+
+# OS specific
+Thumbs.db
+.Spotlight-V100
+.Trashes

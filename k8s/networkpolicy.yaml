@@ -1,0 +1,259 @@
+---
+# Network Policy for API pods
+# Restricts network traffic to/from API pods
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: llm-benchmark-api
+  namespace: llm-benchmark
+  labels:
+    app: llm-benchmark-exchange
+    component: api
+spec:
+  podSelector:
+    matchLabels:
+      app: llm-benchmark-exchange
+      component: api
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow ingress from ingress controller
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8080
+  # Allow ingress from within namespace (for service mesh, monitoring, etc.)
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: llm-benchmark
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  # Allow egress to PostgreSQL
+  - to:
+    - podSelector:
+        matchLabels:
+          app: llm-benchmark-exchange
+          component: database
+    ports:
+    - protocol: TCP
+      port: 5432
+  # Allow egress to Redis
+  - to:
+    - podSelector:
+        matchLabels:
+          app: llm-benchmark-exchange
+          component: cache
+    ports:
+    - protocol: TCP
+      port: 6379
+  # Allow DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    - podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+  # Allow HTTPS to external services (S3, etc.)
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80
+
+---
+# Network Policy for Worker pods
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: llm-benchmark-worker
+  namespace: llm-benchmark
+  labels:
+    app: llm-benchmark-exchange
+    component: worker
+spec:
+  podSelector:
+    matchLabels:
+      app: llm-benchmark-exchange
+      component: worker
+  policyTypes:
+  - Egress
+  egress:
+  # Allow egress to PostgreSQL
+  - to:
+    - podSelector:
+        matchLabels:
+          app: llm-benchmark-exchange
+          component: database
+    ports:
+    - protocol: TCP
+      port: 5432
+  # Allow egress to Redis
+  - to:
+    - podSelector:
+        matchLabels:
+          app: llm-benchmark-exchange
+          component: cache
+    ports:
+    - protocol: TCP
+      port: 6379
+  # Allow DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    - podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+  # Allow HTTPS to external services
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80
+
+---
+# Network Policy for PostgreSQL
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: llm-benchmark-postgres
+  namespace: llm-benchmark
+  labels:
+    app: llm-benchmark-exchange
+    component: database
+spec:
+  podSelector:
+    matchLabels:
+      app: llm-benchmark-exchange
+      component: database
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Only allow ingress from API and Worker pods
+  - from:
+    - podSelector:
+        matchLabels:
+          app: llm-benchmark-exchange
+          component: api
+    - podSelector:
+        matchLabels:
+          app: llm-benchmark-exchange
+          component: worker
+    ports:
+    - protocol: TCP
+      port: 5432
+  # Allow monitoring (optional)
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 5432
+  egress:
+  # Allow DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+
+---
+# Network Policy for Redis
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: llm-benchmark-redis
+  namespace: llm-benchmark
+  labels:
+    app: llm-benchmark-exchange
+    component: cache
+spec:
+  podSelector:
+    matchLabels:
+      app: llm-benchmark-exchange
+      component: cache
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Only allow ingress from API and Worker pods
+  - from:
+    - podSelector:
+        matchLabels:
+          app: llm-benchmark-exchange
+          component: api
+    - podSelector:
+        matchLabels:
+          app: llm-benchmark-exchange
+          component: worker
+    ports:
+    - protocol: TCP
+      port: 6379
+  # Allow monitoring (optional)
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  # Allow DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+
+---
+# Default deny all ingress (optional, for defense in depth)
+# Uncomment to enable default deny policy
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: default-deny-ingress
+#   namespace: llm-benchmark
+# spec:
+#   podSelector: {}
+#   policyTypes:
+#   - Ingress
+
+---
+# Default deny all egress (optional, very restrictive)
+# Uncomment to enable default deny egress policy
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: default-deny-egress
+#   namespace: llm-benchmark
+# spec:
+#   podSelector: {}
+#   policyTypes:
+#   - Egress

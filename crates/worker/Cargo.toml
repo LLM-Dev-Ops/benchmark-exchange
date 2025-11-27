@@ -1,0 +1,59 @@
+[package]
+name = "llm-benchmark-worker"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "worker"
+path = "src/main.rs"
+
+[dependencies]
+# Internal dependencies
+llm-benchmark-domain = { workspace = true }
+llm-benchmark-common = { workspace = true }
+llm-benchmark-application = { workspace = true }
+llm-benchmark-infrastructure = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true }
+async-trait = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Date and time
+chrono = { workspace = true }
+
+# UUID
+uuid = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Logging and tracing
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+opentelemetry = { workspace = true }
+opentelemetry-otlp = { workspace = true }
+
+# Configuration
+config = { workspace = true }
+
+# CLI
+clap = { workspace = true }
+
+# Cache and queue
+redis = { workspace = true }
+
+# Utilities
+futures = { workspace = true }
+parking_lot = { workspace = true }
+num_cpus = "1.16"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }

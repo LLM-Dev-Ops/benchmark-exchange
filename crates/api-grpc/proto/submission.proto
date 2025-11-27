@@ -1,0 +1,244 @@
+syntax = "proto3";
+
+package llm_benchmark.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+// SubmissionService provides operations for benchmark result submissions
+service SubmissionService {
+  // Submit benchmark results
+  rpc SubmitResults(SubmitResultsRequest) returns (SubmitResultsResponse);
+
+  // Get a specific submission
+  rpc GetSubmission(GetSubmissionRequest) returns (GetSubmissionResponse);
+
+  // List submissions with filtering
+  rpc ListSubmissions(ListSubmissionsRequest) returns (ListSubmissionsResponse);
+
+  // Request verification of a submission
+  rpc RequestVerification(RequestVerificationRequest) returns (RequestVerificationResponse);
+}
+
+// Verification level
+enum VerificationLevel {
+  VERIFICATION_LEVEL_UNSPECIFIED = 0;
+  VERIFICATION_LEVEL_UNVERIFIED = 1;
+  VERIFICATION_LEVEL_COMMUNITY_VERIFIED = 2;
+  VERIFICATION_LEVEL_PLATFORM_VERIFIED = 3;
+  VERIFICATION_LEVEL_AUDITED = 4;
+}
+
+// Submission visibility
+enum SubmissionVisibility {
+  SUBMISSION_VISIBILITY_UNSPECIFIED = 0;
+  SUBMISSION_VISIBILITY_PUBLIC = 1;
+  SUBMISSION_VISIBILITY_UNLISTED = 2;
+  SUBMISSION_VISIBILITY_PRIVATE = 3;
+}
+
+// Test case error type
+enum TestCaseErrorType {
+  TEST_CASE_ERROR_TYPE_UNSPECIFIED = 0;
+  TEST_CASE_ERROR_TYPE_TIMEOUT = 1;
+  TEST_CASE_ERROR_TYPE_RATE_LIMITED = 2;
+  TEST_CASE_ERROR_TYPE_MODEL_ERROR = 3;
+  TEST_CASE_ERROR_TYPE_INVALID_OUTPUT = 4;
+  TEST_CASE_ERROR_TYPE_EVALUATION_ERROR = 5;
+}
+
+// Model information
+message ModelInfo {
+  google.protobuf.StringValue model_id = 1;
+  string provider = 2;
+  string model_name = 3;
+  google.protobuf.StringValue model_version = 4;
+  google.protobuf.StringValue api_endpoint = 5;
+  bool is_official = 6;
+}
+
+// Submitter information
+message SubmitterInfo {
+  string user_id = 1;
+  google.protobuf.StringValue organization_id = 2;
+  bool is_verified_provider = 3;
+}
+
+// Metric score
+message MetricScore {
+  double value = 1;
+  google.protobuf.StringValue unit = 2;
+  repeated double raw_values = 3;
+  google.protobuf.DoubleValue std_dev = 4;
+}
+
+// Test case error
+message TestCaseError {
+  TestCaseErrorType error_type = 1;
+  string message = 2;
+}
+
+// Test case result
+message TestCaseResult {
+  string test_case_id = 1;
+  bool passed = 2;
+  double score = 3;
+  google.protobuf.UInt64Value latency_ms = 4;
+  google.protobuf.UInt32Value tokens_generated = 5;
+  TestCaseError error = 6;
+}
+
+// Confidence interval
+message ConfidenceInterval {
+  double lower = 1;
+  double upper = 2;
+  double confidence_level = 3;
+}
+
+// Statistical significance
+message StatisticalSignificance {
+  double p_value = 1;
+  double effect_size = 2;
+  uint32 sample_size = 3;
+  string test_used = 4;
+}
+
+// Submission results
+message SubmissionResults {
+  double aggregate_score = 1;
+  map<string, MetricScore> metric_scores = 2;
+  repeated TestCaseResult test_case_results = 3;
+  ConfidenceInterval confidence_interval = 4;
+  StatisticalSignificance statistical_significance = 5;
+}
+
+// Model parameters
+message ModelParameters {
+  google.protobuf.DoubleValue temperature = 1;
+  google.protobuf.DoubleValue top_p = 2;
+  google.protobuf.UInt32Value top_k = 3;
+  google.protobuf.UInt32Value max_tokens = 4;
+  repeated string stop_sequences = 5;
+  google.protobuf.UInt64Value random_seed = 6;
+}
+
+// Hardware information
+message HardwareInfo {
+  string cpu = 1;
+  uint32 cpu_cores = 2;
+  uint32 memory_gb = 3;
+  google.protobuf.StringValue gpu = 4;
+  google.protobuf.UInt32Value gpu_memory_gb = 5;
+}
+
+// Environment information
+message EnvironmentInfo {
+  string platform = 1;
+  string architecture = 2;
+  google.protobuf.StringValue container_image = 3;
+  google.protobuf.StringValue container_digest = 4;
+  google.protobuf.StringValue python_version = 5;
+  map<string, string> package_versions = 6;
+  HardwareInfo hardware = 7;
+}
+
+// Execution metadata
+message ExecutionMetadata {
+  string execution_id = 1;
+  google.protobuf.Timestamp started_at = 2;
+  google.protobuf.Timestamp completed_at = 3;
+  double duration_seconds = 4;
+  EnvironmentInfo environment = 5;
+  ModelParameters model_parameters_used = 6;
+  map<string, string> dataset_checksums = 7;
+  google.protobuf.UInt64Value random_seed = 8;
+  string executor_version = 9;
+}
+
+// Verification details
+message VerificationDetails {
+  double reproduced_score = 1;
+  double score_variance = 2;
+  bool environment_match = 3;
+  google.protobuf.StringValue notes = 4;
+}
+
+// Verification status
+message VerificationStatus {
+  VerificationLevel level = 1;
+  google.protobuf.Timestamp verified_at = 2;
+  string verified_by = 3;
+  VerificationDetails verification_details = 4;
+}
+
+// Submission
+message Submission {
+  string id = 1;
+  string benchmark_id = 2;
+  string benchmark_version_id = 3;
+  ModelInfo model_info = 4;
+  SubmitterInfo submitter = 5;
+  SubmissionResults results = 6;
+  ExecutionMetadata execution_metadata = 7;
+  VerificationStatus verification_status = 8;
+  SubmissionVisibility visibility = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+// Submit results request
+message SubmitResultsRequest {
+  string benchmark_id = 1;
+  string benchmark_version_id = 2;
+  ModelInfo model_info = 3;
+  SubmissionResults results = 4;
+  ExecutionMetadata execution_metadata = 5;
+  SubmissionVisibility visibility = 6;
+}
+
+// Submit results response
+message SubmitResultsResponse {
+  Submission submission = 1;
+}
+
+// Get submission request
+message GetSubmissionRequest {
+  string id = 1;
+}
+
+// Get submission response
+message GetSubmissionResponse {
+  Submission submission = 1;
+}
+
+// List submissions request
+message ListSubmissionsRequest {
+  google.protobuf.StringValue benchmark_id = 1;
+  google.protobuf.StringValue model_id = 2;
+  google.protobuf.StringValue user_id = 3;
+  VerificationLevel min_verification_level = 4;
+  uint32 page = 5;
+  uint32 page_size = 6;
+  string sort_by = 7;
+  bool sort_desc = 8;
+}
+
+// List submissions response
+message ListSubmissionsResponse {
+  repeated Submission submissions = 1;
+  uint32 total_count = 2;
+  uint32 page = 3;
+  uint32 page_size = 4;
+}
+
+// Request verification request
+message RequestVerificationRequest {
+  string submission_id = 1;
+  google.protobuf.StringValue notes = 2;
+}
+
+// Request verification response
+message RequestVerificationResponse {
+  string verification_id = 1;
+  string status = 2;
+}

@@ -1,0 +1,94 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+=============================================================================
+LLM Benchmark Exchange has been deployed!
+=============================================================================
+
+{{ if .Values.api.ingress.enabled }}
+The API is accessible at:
+{{- range .Values.api.ingress.hosts }}
+  https://{{ .host }}
+{{- end }}
+{{ else }}
+To access the API, run:
+
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "llm-benchmark-exchange.name" . }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component=api" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  echo "Visit http://127.0.0.1:8080 to access the API"
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
+{{ end }}
+
+{{ if .Values.postgresql.enabled }}
+PostgreSQL is running in-cluster.
+{{ else }}
+Using external PostgreSQL at {{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }}
+{{ end }}
+
+{{ if .Values.redis.enabled }}
+Redis is running in-cluster.
+{{ else }}
+Using external Redis at {{ .Values.externalRedis.host }}:{{ .Values.externalRedis.port }}
+{{ end }}
+
+Components deployed:
+  - API: {{ .Values.api.replicaCount }} replicas
+  - Worker: {{ .Values.worker.replicaCount }} replicas
+{{ if .Values.postgresql.enabled }}
+  - PostgreSQL: 1 instance
+{{ end }}
+{{ if .Values.redis.enabled }}
+  - Redis: 1 instance
+{{ end }}
+
+{{ if .Values.autoscaling.enabled }}
+Autoscaling is enabled:
+  - API: {{ .Values.api.autoscaling.minReplicas }}-{{ .Values.api.autoscaling.maxReplicas }} replicas
+  - Worker: {{ .Values.worker.autoscaling.minReplicas }}-{{ .Values.worker.autoscaling.maxReplicas }} replicas
+{{ end }}
+
+=============================================================================
+Next Steps:
+=============================================================================
+
+1. Check the status of all pods:
+   kubectl get pods -n {{ .Release.Namespace }}
+
+2. View API logs:
+   kubectl logs -f -n {{ .Release.Namespace }} -l app.kubernetes.io/component=api
+
+3. View Worker logs:
+   kubectl logs -f -n {{ .Release.Namespace }} -l app.kubernetes.io/component=worker
+
+4. Run database migrations (if not auto-run):
+   kubectl create job --from=cronjob/{{ include "llm-benchmark-exchange.fullname" . }}-migration manual-migration -n {{ .Release.Namespace }}
+
+5. Monitor resources:
+   kubectl top pods -n {{ .Release.Namespace }}
+
+For more information, visit:
+  - Documentation: https://github.com/llm-benchmark-exchange/llm-benchmark-exchange
+  - Issues: https://github.com/llm-benchmark-exchange/llm-benchmark-exchange/issues
+
+{{ if not .Values.secrets.create }}
+WARNING: You are using an existing secret. Make sure it contains all required keys:
+  - database-url
+  - jwt-secret
+  - aws-access-key-id
+  - aws-secret-access-key
+{{ end }}
+
+{{ if eq .Values.secrets.jwtSecret "changeme-generate-secure-random-string" }}
+WARNING: JWT secret is using the default value. Please change it in production!
+Generate a secure secret with: openssl rand -base64 32
+{{ end }}
+
+{{ if eq .Values.postgresql.auth.password "changeme" }}
+WARNING: PostgreSQL password is using the default value. Please change it in production!
+{{ end }}

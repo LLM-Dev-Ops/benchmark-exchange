@@ -1,0 +1,397 @@
+# =============================================================================
+# LLM Benchmark Exchange - Helm Chart Values
+# =============================================================================
+# Default values for llm-benchmark-exchange.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Global settings
+global:
+  # Image registry
+  imageRegistry: ghcr.io
+  # Image pull secrets for private registries
+  imagePullSecrets: []
+  # StorageClass for persistent volumes
+  storageClass: ""
+
+# =============================================================================
+# API Service Configuration
+# =============================================================================
+api:
+  enabled: true
+  replicaCount: 3
+
+  image:
+    repository: llm-benchmark-exchange/api
+    pullPolicy: IfNotPresent
+    tag: "latest"
+
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+    prometheus.io/path: "/metrics"
+
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 1000
+    capabilities:
+      drop:
+      - ALL
+
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8080
+    annotations: {}
+
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/limit-rps: "60"
+    hosts:
+      - host: api.llm-benchmark.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: llm-benchmark-api-tls
+        hosts:
+          - api.llm-benchmark.example.com
+
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 2
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  # Environment variables
+  env:
+    RUST_LOG: info
+    API_HOST: 0.0.0.0
+    API_PORT: "8080"
+    DATABASE_MAX_CONNECTIONS: "50"
+    DATABASE_MIN_CONNECTIONS: "10"
+    REDIS_POOL_SIZE: "20"
+    JWT_EXPIRATION: "86400"
+    RATE_LIMIT_REQUESTS: "60"
+    RATE_LIMIT_WINDOW: "60"
+
+  # Probes
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+  startupProbe:
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 0
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 30
+
+# =============================================================================
+# Worker Service Configuration
+# =============================================================================
+worker:
+  enabled: true
+  replicaCount: 2
+
+  image:
+    repository: llm-benchmark-exchange/worker
+    pullPolicy: IfNotPresent
+    tag: "latest"
+
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 1000
+    capabilities:
+      drop:
+      - ALL
+
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 4Gi
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 75
+    targetMemoryUtilizationPercentage: 85
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  # Environment variables
+  env:
+    RUST_LOG: info
+    WORKER_POOL_SIZE: "8"
+    WORKER_SCHEDULER_ENABLED: "true"
+    METRICS_INTERVAL: "60"
+    DATABASE_MAX_CONNECTIONS: "20"
+
+# =============================================================================
+# PostgreSQL Configuration
+# =============================================================================
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "changeme"
+    username: postgres
+    password: "changeme"
+    database: llm_benchmark_exchange
+
+  primary:
+    persistence:
+      enabled: true
+      size: 50Gi
+      storageClass: ""
+
+    resources:
+      limits:
+        cpu: 4000m
+        memory: 8Gi
+      requests:
+        cpu: 2000m
+        memory: 4Gi
+
+    podSecurityContext:
+      enabled: true
+      fsGroup: 1001
+
+    containerSecurityContext:
+      enabled: true
+      runAsUser: 1001
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+
+# =============================================================================
+# Redis Configuration
+# =============================================================================
+redis:
+  enabled: true
+  auth:
+    enabled: false
+    password: ""
+
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+      storageClass: ""
+
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+
+# =============================================================================
+# External Services Configuration
+# =============================================================================
+externalDatabase:
+  # Use external database instead of bundled PostgreSQL
+  enabled: false
+  host: postgres.example.com
+  port: 5432
+  database: llm_benchmark_exchange
+  username: postgres
+  password: ""
+  # Existing secret with database credentials
+  existingSecret: ""
+  existingSecretPasswordKey: password
+
+externalRedis:
+  # Use external Redis instead of bundled Redis
+  enabled: false
+  host: redis.example.com
+  port: 6379
+  password: ""
+  # Existing secret with Redis credentials
+  existingSecret: ""
+  existingSecretPasswordKey: password
+
+# =============================================================================
+# S3 Storage Configuration
+# =============================================================================
+s3:
+  endpoint: "https://s3.amazonaws.com"
+  region: us-east-1
+  bucket: llm-benchmark-production
+  pathStyle: false
+  # AWS credentials (use existingSecret in production)
+  accessKeyId: ""
+  secretAccessKey: ""
+  # Existing secret with S3 credentials
+  existingSecret: ""
+  existingSecretAccessKeyIdKey: aws-access-key-id
+  existingSecretSecretAccessKeyKey: aws-secret-access-key
+
+# =============================================================================
+# Security Configuration
+# =============================================================================
+secrets:
+  # Create secrets or use existing ones
+  create: true
+  # Existing secret name (if create: false)
+  existingSecret: ""
+
+  # JWT configuration
+  jwtSecret: "changeme-generate-secure-random-string"
+
+  # CORS configuration
+  corsAllowedOrigins: "https://llm-benchmark.example.com"
+
+# =============================================================================
+# Network Policy
+# =============================================================================
+networkPolicy:
+  enabled: false
+  policyTypes:
+    - Ingress
+    - Egress
+
+# =============================================================================
+# Monitoring and Observability
+# =============================================================================
+monitoring:
+  enabled: false
+
+  # Prometheus ServiceMonitor
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    scrapeTimeout: 10s
+    labels: {}
+
+  # Grafana dashboards
+  grafanaDashboards:
+    enabled: false
+
+# =============================================================================
+# Database Migrations
+# =============================================================================
+migrations:
+  enabled: true
+  image:
+    repository: llm-benchmark-exchange/api
+    pullPolicy: IfNotPresent
+    tag: "latest"
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# =============================================================================
+# Feature Flags
+# =============================================================================
+features:
+  governance: true
+  reputation: true
+  leaderboard: true
+
+# =============================================================================
+# Additional Configuration
+# =============================================================================
+# Extra environment variables
+extraEnvVars: []
+# - name: CUSTOM_VAR
+#   value: "custom-value"
+
+# Extra environment variables from ConfigMap
+extraEnvVarsCM: ""
+
+# Extra environment variables from Secret
+extraEnvVarsSecret: ""
+
+# Extra volumes
+extraVolumes: []
+
+# Extra volume mounts
+extraVolumeMounts: []

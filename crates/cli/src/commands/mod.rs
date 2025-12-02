@@ -5,6 +5,7 @@ pub mod benchmark;
 pub mod init;
 pub mod leaderboard;
 pub mod proposal;
+pub mod run;
 pub mod submit;
 
 use crate::client::ApiClient;

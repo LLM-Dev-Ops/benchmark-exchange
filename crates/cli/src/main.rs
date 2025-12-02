@@ -6,7 +6,7 @@ use anyhow::Result;
 use clap::{Parser, Subcommand, ValueEnum};
 
 use llm_benchmark_cli::commands::{
-    auth, benchmark, init, leaderboard, proposal, submit, CommandContext,
+    auth, benchmark, init, leaderboard, proposal, run, submit, CommandContext,
 };
 use llm_benchmark_cli::config::Config;
 use llm_benchmark_cli::output::OutputFormat;
@@ -138,6 +138,13 @@ enum Commands {
         /// Shell to generate completions for
         #[arg(value_enum)]
         shell: clap_complete::Shell,
+    },
+
+    /// Run benchmark suite
+    #[command(alias = "r")]
+    Run {
+        #[command(subcommand)]
+        command: RunCommands,
     },
 }
 
@@ -529,6 +536,45 @@ enum ProposalCommands {
     },
 }
 
+#[derive(Subcommand, Debug)]
+enum RunCommands {
+    /// Run all benchmarks
+    All {
+        /// Output directory for results
+        #[arg(short, long)]
+        output: Option<String>,
+
+        /// Output results as JSON
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Run a specific benchmark target
+    Single {
+        /// Benchmark target ID
+        #[arg(value_name = "TARGET_ID")]
+        target_id: String,
+
+        /// Output directory for results
+        #[arg(short, long)]
+        output: Option<String>,
+
+        /// Output results as JSON
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// List available benchmark targets
+    List,
+
+    /// Show benchmark results summary
+    Summary {
+        /// Directory containing benchmark results
+        #[arg(short, long)]
+        output: Option<String>,
+    },
+}
+
 fn generate_completions(shell: clap_complete::Shell) {
     use clap::CommandFactory;
     let mut cmd = Cli::command();
@@ -745,6 +791,21 @@ async fn main() -> Result<()> {
             // Already handled above
             Ok(())
         }
+
+        Commands::Run { command } => match command {
+            RunCommands::All { output, json } => {
+                run::run_all(output.map(std::path::PathBuf::from), json).await
+            }
+            RunCommands::Single {
+                target_id,
+                output,
+                json,
+            } => run::run_single(target_id, output.map(std::path::PathBuf::from), json).await,
+            RunCommands::List => run::list().await,
+            RunCommands::Summary { output } => {
+                run::show_summary(output.map(std::path::PathBuf::from)).await
+            }
+        },
     };
 
     // Handle errors

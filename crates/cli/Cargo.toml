@@ -16,6 +16,7 @@ llm-benchmark-domain = { workspace = true }
 llm-benchmark-common = { workspace = true }
 llm-benchmark-application = { workspace = true }
 llm-benchmark-infrastructure = { workspace = true }
+llm-benchmark-benchmarks = { workspace = true }
 
 # Async runtime
 tokio = { workspace = true }

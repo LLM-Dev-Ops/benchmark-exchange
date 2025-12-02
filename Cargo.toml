@@ -11,6 +11,7 @@ members = [
     "crates/cli",
     "crates/sdk",
     "crates/testing",
+    "crates/benchmarks",
 ]
 
 [workspace.package]
@@ -97,3 +98,4 @@ llm-benchmark-worker = { path = "crates/worker" }
 llm-benchmark-cli = { path = "crates/cli" }
 llm-benchmark-sdk = { path = "crates/sdk" }
 llm-benchmark-testing = { path = "crates/testing" }
+llm-benchmark-benchmarks = { path = "crates/benchmarks" }

@@ -1,0 +1,16 @@
+{
+  "name": "@llm-dev-ops/benchmark-exchange",
+  "version": "0.1.0",
+  "description": "LLM Benchmark Exchange Platform",
+  "dependencies": {
+    "claude-code": "^1.0.0",
+    "@llm-dev-ops/llm-marketplace-sdk": "^1.1.1",
+    "@llm-dev-ops/llm-marketplace-model-marketplace": "^1.1.1"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LLM-Dev-Ops/benchmark-exchange"
+  },
+  "license": "MIT"
+}

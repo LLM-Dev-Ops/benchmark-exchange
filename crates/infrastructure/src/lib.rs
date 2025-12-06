@@ -32,6 +32,7 @@
 
 pub mod cache;
 pub mod database;
+pub mod external_consumers;
 pub mod messaging;
 pub mod repositories;
 pub mod storage;
@@ -49,6 +50,19 @@ pub use repositories::{
     SubmissionQuery, SubmissionRepository, UserCredentials, UserQuery, UserRepository,
 };
 pub use storage::{ObjectInfo, ObjectMetadata, S3Storage, Storage, StorageConfig, StorageHealthStatus};
+
+// Re-export external consumer types
+pub use external_consumers::{
+    ExternalConsumerError, ExternalConsumerHealth, ExternalConsumerResult, ServiceHealth,
+    // Registry consumer
+    RegistryConsumer, RegistryConfig, ModelMetadata, BenchmarkDescriptor, RegistryCorpus,
+    // Marketplace consumer
+    MarketplaceConsumer, MarketplaceConfig, SharedTestSuite, ShieldFilter, EvaluationTemplate,
+    // Observatory consumer
+    ObservatoryConsumer, ObservatoryConfig, ExecutionTelemetry, PerformanceMetadata,
+    // Test-Bench ingester
+    TestBenchIngester, TestBenchConfig, BenchmarkResult, IngestionFormat,
+};
 
 // Re-export result and error types
 pub type Result<T> = std::result::Result<T, Error>;
@@ -127,6 +141,8 @@ pub struct InfrastructureHealth {
     pub storage: Option<StorageHealthStatus>,
     /// Messaging health
     pub messaging: Option<MessagingHealthStatus>,
+    /// External consumers health
+    pub external_consumers: Option<ExternalConsumerHealth>,
 }
 
 impl InfrastructureHealth {
@@ -138,6 +154,7 @@ impl InfrastructureHealth {
             cache: None,
             storage: None,
             messaging: None,
+            external_consumers: None,
         }
     }
 
@@ -174,6 +191,15 @@ impl InfrastructureHealth {
             self.healthy = false;
         }
         self.messaging = Some(status);
+        self
+    }
+
+    /// Set external consumers health
+    pub fn with_external_consumers(mut self, status: ExternalConsumerHealth) -> Self {
+        if !status.healthy {
+            self.healthy = false;
+        }
+        self.external_consumers = Some(status);
         self
     }
 }

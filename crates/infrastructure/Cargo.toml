@@ -50,6 +50,9 @@ futures = { workspace = true }
 bytes = { workspace = true }
 url = { workspace = true }
 
+# CSV parsing for Test-Bench ingestion (runtime only, no LLM-Test-Bench dependency)
+csv = "1.3"
+
 [dev-dependencies]
 llm-benchmark-testing = { workspace = true }
 fake = { workspace = true }

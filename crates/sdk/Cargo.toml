@@ -11,14 +11,24 @@ categories = ["api-bindings", "development-tools"]
 readme = "README.md"
 
 [features]
-default = ["rustls"]
+default = ["rustls", "infra-integration"]
 rustls = ["reqwest/rustls-tls"]
 native-tls = ["reqwest/native-tls"]
 blocking = ["reqwest/blocking"]
+# Phase 2B: Use LLM-Infra retry and client modules
+infra-integration = []
+# Legacy mode: Use backoff crate directly (deprecated)
+legacy-local = ["backoff"]
 
 [dependencies]
 # Internal dependencies
 llm-benchmark-domain = { workspace = true }
+
+# LLM-Infra Integration (Phase 2B)
+# Retry logic with exponential backoff and circuit breaker
+llm-infra-retry = { workspace = true }
+# HTTP client abstractions with built-in retry
+llm-infra-client = { workspace = true }
 
 # Async runtime
 tokio = { workspace = true }
@@ -48,8 +58,8 @@ url = { workspace = true }
 bytes = { workspace = true }
 futures = { workspace = true }
 
-# Retry logic
-backoff = { version = "0.4", features = ["tokio"] }
+# Retry logic (legacy - deprecated in favor of llm-infra-retry)
+backoff = { version = "0.4", features = ["tokio"], optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util", "macros"] }

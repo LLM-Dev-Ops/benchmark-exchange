@@ -6,11 +6,26 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 
+[features]
+default = ["infra-integration"]
+# Phase 2B: Use LLM-Infra modules for rate limiting and logging
+infra-integration = []
+# Legacy mode: Use local in-memory rate limiter (deprecated)
+legacy-local = []
+
 [dependencies]
 # Internal dependencies
 llm-benchmark-domain = { workspace = true }
 llm-benchmark-common = { workspace = true }
 llm-benchmark-application = { workspace = true }
+
+# LLM-Infra Integration (Phase 2B)
+# Rate limiting with Redis backend and sliding window
+llm-infra-ratelimit = { workspace = true }
+# Structured logging with request correlation
+llm-infra-logging = { workspace = true }
+# Distributed tracing for API endpoints
+llm-infra-tracing = { workspace = true }
 
 # Async runtime
 tokio = { workspace = true }

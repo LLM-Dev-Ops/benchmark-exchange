@@ -6,10 +6,27 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 
+[features]
+default = ["infra-integration"]
+# Phase 2B: Use LLM-Infra modules for caching, rate limiting, and client abstractions
+infra-integration = []
+# Legacy mode: Use local implementations (deprecated, will be removed in v0.3)
+legacy-local = []
+
 [dependencies]
 # Internal dependencies
 llm-benchmark-domain = { workspace = true }
 llm-benchmark-common = { workspace = true }
+
+# LLM-Infra Integration (Phase 2B)
+# Caching layer with Redis and in-memory support
+llm-infra-cache = { workspace = true }
+# Rate limiting with sliding window algorithm
+llm-infra-ratelimit = { workspace = true }
+# HTTP and gRPC client abstractions
+llm-infra-client = { workspace = true }
+# Core infrastructure utilities
+llm-infra-core = { workspace = true }
 
 # Async runtime
 tokio = { workspace = true }

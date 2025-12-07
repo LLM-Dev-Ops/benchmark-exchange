@@ -13,6 +13,17 @@
 //! implementations of data access that can be swapped for testing or different
 //! storage backends.
 //!
+//! ## Phase 2B Infra Integration
+//!
+//! As of Phase 2B, this crate integrates with LLM-Infra modules for:
+//! - Caching (`llm-infra-cache`) - Redis and in-memory backends
+//! - Rate limiting (`llm-infra-ratelimit`) - Sliding window algorithm
+//! - HTTP/gRPC clients (`llm-infra-client`) - With built-in retry and tracing
+//! - Core utilities (`llm-infra-core`) - Common infrastructure patterns
+//!
+//! The `infra-integration` feature (enabled by default) uses these centralized modules.
+//! The `legacy-local` feature falls back to local implementations (deprecated).
+//!
 //! ## Usage
 //!
 //! ```rust,ignore
@@ -20,6 +31,8 @@
 //!     database::{DatabaseConfig, DatabasePool},
 //!     repositories::{BenchmarkRepository, PgBenchmarkRepository},
 //!     cache::{CacheConfig, RedisCache},
+//!     // Phase 2B: Use Infra cache for production
+//!     infra::cache::InfraCache,
 //! };
 //!
 //! // Initialize database pool
@@ -36,6 +49,58 @@ pub mod external_consumers;
 pub mod messaging;
 pub mod repositories;
 pub mod storage;
+
+// ============================================================================
+// LLM-Infra Re-exports (Phase 2B Integration)
+// ============================================================================
+
+/// Re-exports from LLM-Infra modules for centralized infrastructure.
+///
+/// These modules provide production-ready implementations for caching,
+/// rate limiting, and client abstractions that are shared across the
+/// LLM-Dev-Ops ecosystem.
+#[cfg(feature = "infra-integration")]
+pub mod infra {
+    /// Caching layer powered by llm-infra-cache.
+    ///
+    /// Provides Redis and in-memory cache implementations with:
+    /// - Automatic serialization/deserialization
+    /// - TTL management
+    /// - Cache invalidation patterns
+    /// - Distributed locking
+    pub mod cache {
+        pub use llm_infra_cache::*;
+    }
+
+    /// Rate limiting powered by llm-infra-ratelimit.
+    ///
+    /// Provides production-ready rate limiting with:
+    /// - Sliding window algorithm
+    /// - Redis backend for distributed rate limiting
+    /// - Configurable limits per endpoint/user
+    /// - Headers for rate limit status
+    pub mod ratelimit {
+        pub use llm_infra_ratelimit::*;
+    }
+
+    /// HTTP and gRPC client abstractions powered by llm-infra-client.
+    ///
+    /// Provides client utilities with:
+    /// - Automatic retry with backoff
+    /// - Distributed tracing propagation
+    /// - Circuit breaker pattern
+    /// - Request/response logging
+    pub mod client {
+        pub use llm_infra_client::*;
+    }
+
+    /// Core infrastructure utilities powered by llm-infra-core.
+    ///
+    /// Provides common patterns and utilities shared across modules.
+    pub mod core {
+        pub use llm_infra_core::*;
+    }
+}
 
 // Re-export commonly used types
 pub use cache::{Cache, CacheConfig, CacheHealthStatus, RateLimitResult, RedisCache};

@@ -3,14 +3,58 @@
   "version": "0.1.0",
   "description": "LLM Benchmark Exchange Platform",
   "dependencies": {
-    "claude-code": "^1.0.0",
+    "@llm-dev-ops/llm-marketplace-model-marketplace": "^1.1.1",
     "@llm-dev-ops/llm-marketplace-sdk": "^1.1.1",
-    "@llm-dev-ops/llm-marketplace-model-marketplace": "^1.1.1"
+    "@llm-dev-ops/infra-config": "^0.2.0",
+    "@llm-dev-ops/infra-logging": "^0.2.0",
+    "@llm-dev-ops/infra-tracing": "^0.2.0",
+    "@llm-dev-ops/infra-errors": "^0.2.0",
+    "@llm-dev-ops/infra-cache": "^0.2.0",
+    "@llm-dev-ops/infra-retry": "^0.2.0",
+    "@llm-dev-ops/infra-ratelimit": "^0.2.0",
+    "claude-code": "^1.0.0",
+    "claude-flow": "^2.7.41"
   },
-  "devDependencies": {},
+  "peerDependencies": {
+    "@llm-dev-ops/infra-core": "^0.2.0"
+  },
+  "devDependencies": {
+    "@llm-dev-ops/infra-testing": "^0.2.0"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/LLM-Dev-Ops/benchmark-exchange"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "llmDevOps": {
+    "phase": "2B",
+    "infraIntegration": {
+      "version": "0.2.0",
+      "modules": [
+        "config",
+        "logging",
+        "tracing",
+        "errors",
+        "cache",
+        "retry",
+        "ratelimit"
+      ],
+      "featureFlags": {
+        "infraIntegration": true,
+        "legacyLocal": false
+      }
+    },
+    "exposesTo": [
+      "llm-test-bench",
+      "llm-analytics-hub",
+      "llm-registry",
+      "llm-gateway"
+    ],
+    "consumesFrom": [
+      "llm-infra",
+      "llm-registry",
+      "llm-observatory",
+      "llm-marketplace"
+    ]
+  }
 }

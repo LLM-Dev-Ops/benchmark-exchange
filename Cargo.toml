@@ -98,6 +98,19 @@ llm-observatory-core = { git = "https://github.com/LLM-Dev-Ops/observatory", ver
 llm-observatory-sdk = { git = "https://github.com/LLM-Dev-Ops/observatory", version = "0.1.1" }
 llm-observatory-collector = { git = "https://github.com/LLM-Dev-Ops/observatory", version = "0.1.1" }
 
+# LLM-Infra - Shared infrastructure modules (Phase 2B Integration)
+# Provides: configuration loading, structured logging, distributed tracing,
+# error utilities, caching, retry logic, rate limiting, and LLM client abstractions
+llm-infra-core = { git = "https://github.com/LLM-Dev-Ops/infra", version = "0.2", features = ["full"] }
+llm-infra-config = { git = "https://github.com/LLM-Dev-Ops/infra", version = "0.2" }
+llm-infra-logging = { git = "https://github.com/LLM-Dev-Ops/infra", version = "0.2", features = ["tracing", "opentelemetry"] }
+llm-infra-tracing = { git = "https://github.com/LLM-Dev-Ops/infra", version = "0.2", features = ["otlp", "jaeger"] }
+llm-infra-errors = { git = "https://github.com/LLM-Dev-Ops/infra", version = "0.2" }
+llm-infra-cache = { git = "https://github.com/LLM-Dev-Ops/infra", version = "0.2", features = ["redis", "in-memory"] }
+llm-infra-retry = { git = "https://github.com/LLM-Dev-Ops/infra", version = "0.2", features = ["exponential", "circuit-breaker"] }
+llm-infra-ratelimit = { git = "https://github.com/LLM-Dev-Ops/infra", version = "0.2", features = ["redis", "sliding-window"] }
+llm-infra-client = { git = "https://github.com/LLM-Dev-Ops/infra", version = "0.2", features = ["http", "grpc"] }
+
 # Internal crates
 llm-benchmark-domain = { path = "crates/domain" }
 llm-benchmark-common = { path = "crates/common" }

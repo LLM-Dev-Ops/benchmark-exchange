@@ -6,9 +6,28 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 
+[features]
+default = ["infra-integration"]
+# Phase 2B: Use LLM-Infra modules for configuration, logging, retry, and error utilities
+infra-integration = []
+# Legacy mode: Use local implementations (deprecated, will be removed in v0.3)
+legacy-local = []
+
 [dependencies]
 # Internal dependencies
 llm-benchmark-domain = { workspace = true }
+
+# LLM-Infra Integration (Phase 2B)
+# Configuration loading from centralized Infra
+llm-infra-config = { workspace = true }
+# Structured logging with OpenTelemetry integration
+llm-infra-logging = { workspace = true }
+# Distributed tracing support
+llm-infra-tracing = { workspace = true }
+# Standardized error types and utilities
+llm-infra-errors = { workspace = true }
+# Retry logic with exponential backoff and circuit breaker
+llm-infra-retry = { workspace = true }
 
 # Async runtime
 tokio = { workspace = true }

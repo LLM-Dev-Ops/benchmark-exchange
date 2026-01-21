@@ -10,7 +10,12 @@ package-lock.json
 
 # Claude Flow (local state)
 .claude-flow/
+.claude/
 plans/
+
+# Claude Code
+CLAUDE.md
+.mcp.json
 
 # IDE
 .idea/

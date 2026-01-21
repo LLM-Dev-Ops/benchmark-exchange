@@ -5,11 +5,13 @@
 
 mod benchmark;
 mod organization;
+mod publication;
 mod submission;
 mod user;
 
 pub use benchmark::*;
 pub use organization::*;
+pub use publication::*;
 pub use submission::*;
 pub use user::*;
 

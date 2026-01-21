@@ -6,6 +6,7 @@ use axum::Router;
 pub mod benchmarks;
 pub mod governance;
 pub mod leaderboards;
+pub mod publications;
 pub mod submissions;
 pub mod users;
 
@@ -17,4 +18,5 @@ pub fn routes() -> Router<AppState> {
         .merge(leaderboards::routes())
         .merge(governance::routes())
         .merge(users::routes())
+        .merge(publications::routes())
 }

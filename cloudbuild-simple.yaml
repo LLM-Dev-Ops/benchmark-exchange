@@ -1,0 +1,95 @@
+# Simplified Cloud Build configuration for LLM-Benchmark-Gateway
+# Deploys a minimal health check server for initial verification
+
+substitutions:
+  _SERVICE_NAME: llm-benchmark-gateway
+  _REGION: us-central1
+  _PLATFORM_ENV: dev
+  _MIN_INSTANCES: "0"
+  _MAX_INSTANCES: "10"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8
+
+steps:
+  # Step 1: Build container image (simplified, self-contained)
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${SHORT_SHA}'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest'
+      - '-f'
+      - 'deploy/cloudrun/Dockerfile.simple'
+      - '.'
+
+  # Step 2: Push container image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${SHORT_SHA}'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push-latest'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest'
+
+  # Step 3: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}'
+      - '--image=gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${SHORT_SHA}'
+      - '--region=${_REGION}'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--min-instances=${_MIN_INSTANCES}'
+      - '--max-instances=${_MAX_INSTANCES}'
+      - '--memory=512Mi'
+      - '--cpu=1'
+      - '--timeout=300'
+      - '--concurrency=80'
+      - '--set-env-vars=SERVICE_NAME=${_SERVICE_NAME}'
+      - '--set-env-vars=SERVICE_VERSION=${SHORT_SHA}'
+      - '--set-env-vars=PLATFORM_ENV=${_PLATFORM_ENV}'
+      - '--service-account=${_SERVICE_NAME}@$PROJECT_ID.iam.gserviceaccount.com'
+      - '--ingress=all'
+
+  # Step 4: Verify deployment
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'verify'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        SERVICE_URL=$$(gcloud run services describe ${_SERVICE_NAME} --region=${_REGION} --format='value(status.url)')
+        echo "Service URL: $$SERVICE_URL"
+
+        # Wait for service to be ready
+        for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
+          STATUS=$$(curl -s -o /dev/null -w "%{http_code}" "$$SERVICE_URL/health" || echo "000")
+          if [ "$$STATUS" = "200" ]; then
+            echo "Service is healthy!"
+            curl -s "$$SERVICE_URL/health"
+            exit 0
+          fi
+          echo "Waiting for service... (attempt $$i/20, status: $$STATUS)"
+          sleep 5
+        done
+
+        echo "Service health check failed"
+        exit 1
+
+images:
+  - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${SHORT_SHA}'
+  - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest'
+
+timeout: '1200s'

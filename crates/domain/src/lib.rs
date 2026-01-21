@@ -56,6 +56,7 @@ pub mod governance;
 pub mod events;
 pub mod errors;
 pub mod validation;
+pub mod publication;
 
 // Re-export commonly used types
 pub use identifiers::*;
@@ -68,3 +69,8 @@ pub use benchmark::{BenchmarkCategory, BenchmarkStatus, BenchmarkMetadata, Licen
 pub use user::{UserRole, OrganizationType, OrganizationRole};
 pub use submission::{VerificationLevel, SubmissionVisibility};
 pub use governance::{ProposalType, ProposalStatus, ProposalOutcome, Vote};
+pub use publication::{
+    PublicationId, PublicationStatus, PublicationDecisionType, PublicationConfidence,
+    ConfidenceLevel, PublicationConstraints, Publication, PublicationEvent, DecisionEvent,
+    DecisionOutputs, NormalizedMetrics, ValidationResults,
+};

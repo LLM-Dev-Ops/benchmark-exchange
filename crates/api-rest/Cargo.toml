@@ -6,6 +6,10 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 
+[[bin]]
+name = "llm-benchmark-api"
+path = "src/main.rs"
+
 [features]
 default = ["infra-integration"]
 # Phase 2B: Use LLM-Infra modules for rate limiting and logging
@@ -58,6 +62,9 @@ opentelemetry-otlp = { workspace = true }
 
 # Validation
 validator = { workspace = true }
+
+# Configuration
+config = { workspace = true }
 
 # Authentication
 jsonwebtoken = "9.2"

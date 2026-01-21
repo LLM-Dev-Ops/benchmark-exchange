@@ -12,6 +12,7 @@ pub mod registry;
 pub mod marketplace;
 pub mod observatory;
 pub mod testbench;
+pub mod ruvector;
 
 // Re-export adapter types
 pub use registry::{
@@ -25,6 +26,12 @@ pub use observatory::{
 };
 pub use testbench::{
     TestBenchIngester, TestBenchConfig, BenchmarkResult, IngestionFormat,
+};
+pub use ruvector::{
+    RuVectorClient, RuVectorConfig, HttpRuVectorClient, InMemoryRuVectorClient,
+    StoreDecisionEventRequest, StoreDecisionEventResponse,
+    StorePublicationRequest, StorePublicationResponse,
+    PublicationQuery, PaginatedPublications, TelemetryEvent,
 };
 
 use thiserror::Error;

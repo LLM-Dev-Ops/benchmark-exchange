@@ -62,8 +62,12 @@ impl ApiConfig {
     /// Load configuration from environment variables
     pub fn from_env() -> anyhow::Result<Self> {
         let config = Self {
-            host: std::env::var("API_HOST").unwrap_or_else(|_| "0.0.0.0".to_string()),
-            port: std::env::var("API_PORT")
+            // Support both API_HOST/HOST and API_PORT/PORT for Cloud Run compatibility
+            host: std::env::var("HOST")
+                .or_else(|_| std::env::var("API_HOST"))
+                .unwrap_or_else(|_| "0.0.0.0".to_string()),
+            port: std::env::var("PORT")
+                .or_else(|_| std::env::var("API_PORT"))
                 .ok()
                 .and_then(|s| s.parse().ok())
                 .unwrap_or(8080),

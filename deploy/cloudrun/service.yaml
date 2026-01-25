@@ -59,6 +59,18 @@ spec:
             - name: PLATFORM_ENV
               value: "${PLATFORM_ENV}"
 
+            # Phase 7 Agent Identity (REQUIRED)
+            - name: AGENT_NAME
+              value: "benchmark-publication-agent"
+            - name: AGENT_DOMAIN
+              value: "benchmark"
+            - name: AGENT_PHASE
+              value: "phase7"
+            - name: AGENT_LAYER
+              value: "layer2"
+            - name: AGENT_VERSION
+              value: "1.0.0"
+
             # Server Configuration
             - name: HOST
               value: "0.0.0.0"
@@ -68,6 +80,7 @@ spec:
               value: "${RUST_LOG}"
 
             # RuVector Service - ALL persistence via this service
+            # Phase 7: Agents MUST crash if RuVector is unavailable
             - name: RUVECTOR_SERVICE_URL
               value: "${RUVECTOR_SERVICE_URL}"
             - name: RUVECTOR_API_KEY

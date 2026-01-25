@@ -77,6 +77,13 @@ steps:
       - '--set-env-vars=SERVICE_VERSION=$SHORT_SHA'
       - '--set-env-vars=PLATFORM_ENV=${_PLATFORM_ENV}'
       - '--set-env-vars=RUST_LOG=info,llm_benchmark=debug'
+      # Phase 7 Agent Identity (REQUIRED)
+      - '--set-env-vars=AGENT_NAME=benchmark-publication-agent'
+      - '--set-env-vars=AGENT_DOMAIN=benchmark'
+      - '--set-env-vars=AGENT_PHASE=phase7'
+      - '--set-env-vars=AGENT_LAYER=layer2'
+      - '--set-env-vars=AGENT_VERSION=1.0.0'
+      # RuVector (REQUIRED - Phase 7 agents MUST crash if unavailable)
       - '--set-secrets=RUVECTOR_API_KEY=ruvector-api-key:latest'
       - '--service-account=${_SERVICE_NAME}@$PROJECT_ID.iam.gserviceaccount.com'
       - '--ingress=internal-and-cloud-load-balancing'

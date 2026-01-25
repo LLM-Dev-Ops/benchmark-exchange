@@ -601,18 +601,217 @@ pub enum PublicationEvent {
 }
 
 // =============================================================================
-// DecisionEvent (per constitution requirements)
+// Agent Identity (Phase 7 Hardening)
+// =============================================================================
+
+/// Agent identity metadata for DecisionEvent traceability
+/// Per Phase 7: Every DecisionEvent MUST include full agent identity
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentIdentity {
+    /// Source agent identifier (e.g., "benchmark-publication-agent")
+    pub source_agent: String,
+
+    /// Domain this agent operates in
+    pub domain: String,
+
+    /// Phase of agent execution (always "phase7" for Phase 7 agents)
+    pub phase: String,
+
+    /// Architectural layer (always "layer2" for Layer 2 agents)
+    pub layer: String,
+
+    /// Semantic version of the agent
+    pub agent_version: String,
+}
+
+impl Default for AgentIdentity {
+    fn default() -> Self {
+        Self {
+            source_agent: std::env::var("AGENT_NAME")
+                .unwrap_or_else(|_| "benchmark-publication-agent".to_string()),
+            domain: std::env::var("AGENT_DOMAIN")
+                .unwrap_or_else(|_| "benchmark".to_string()),
+            phase: std::env::var("AGENT_PHASE")
+                .unwrap_or_else(|_| "phase7".to_string()),
+            layer: std::env::var("AGENT_LAYER")
+                .unwrap_or_else(|_| "layer2".to_string()),
+            agent_version: std::env::var("AGENT_VERSION")
+                .unwrap_or_else(|_| "1.0.0".to_string()),
+        }
+    }
+}
+
+impl AgentIdentity {
+    /// Create identity for benchmark publication operations
+    pub fn for_publication() -> Self {
+        Self::default()
+    }
+
+    /// Validate that all required identity fields are present
+    pub fn validate(&self) -> Result<(), String> {
+        if self.source_agent.is_empty() {
+            return Err("source_agent is required".to_string());
+        }
+        if self.domain.is_empty() {
+            return Err("domain is required".to_string());
+        }
+        if self.phase.is_empty() {
+            return Err("phase is required".to_string());
+        }
+        if self.layer.is_empty() {
+            return Err("layer is required".to_string());
+        }
+        if self.agent_version.is_empty() {
+            return Err("agent_version is required".to_string());
+        }
+        Ok(())
+    }
+}
+
+// =============================================================================
+// Phase 7 Signal Types
+// =============================================================================
+
+/// Phase 7 signal container for intelligence signals (NOT decisions)
+/// Per Phase 7: Agents emit signals, NOT conclusions
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct Phase7Signals {
+    /// Hypothesis signal - represents a testable hypothesis
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hypothesis_signal: Option<HypothesisSignal>,
+
+    /// Simulation outcome signal - results from simulation/prediction
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub simulation_outcome_signal: Option<SimulationOutcomeSignal>,
+
+    /// Confidence delta signal - change in confidence from previous state
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub confidence_delta_signal: Option<ConfidenceDeltaSignal>,
+}
+
+/// Hypothesis signal for benchmark decisions
+/// Per Phase 7: Represents intelligence INPUT, not outcome
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HypothesisSignal {
+    /// Unique hypothesis identifier
+    pub hypothesis_id: String,
+
+    /// Human-readable hypothesis statement
+    pub statement: String,
+
+    /// Prior probability (before evidence) - 0.0 to 1.0
+    pub prior_probability: f64,
+
+    /// Posterior probability (after evidence) - 0.0 to 1.0
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub posterior_probability: Option<f64>,
+
+    /// Evidence references (run IDs, telemetry IDs, dataset refs)
+    pub evidence_refs: Vec<String>,
+
+    /// Timestamp of hypothesis generation
+    pub timestamp: DateTime<Utc>,
+}
+
+/// Simulation outcome signal
+/// Per Phase 7: Represents simulation results, not decisions
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SimulationOutcomeSignal {
+    /// Simulation run identifier
+    pub simulation_id: String,
+
+    /// Number of simulation iterations
+    pub iterations: u32,
+
+    /// Predicted outcome value
+    pub predicted_value: f64,
+
+    /// Confidence in prediction - 0.0 to 1.0
+    pub confidence: f64,
+
+    /// Prediction confidence interval (lower, upper)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub confidence_interval: Option<(f64, f64)>,
+
+    /// Evidence references
+    pub evidence_refs: Vec<String>,
+
+    /// Timestamp of simulation
+    pub timestamp: DateTime<Utc>,
+}
+
+/// Confidence delta signal - tracks confidence changes
+/// Per Phase 7: Represents change signal, not final state
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfidenceDeltaSignal {
+    /// Previous confidence value (0.0 to 1.0)
+    pub previous_confidence: f64,
+
+    /// Current confidence value (0.0 to 1.0)
+    pub current_confidence: f64,
+
+    /// Absolute delta (current - previous)
+    pub delta: f64,
+
+    /// Reason for confidence change
+    pub reason: String,
+
+    /// Evidence references supporting the change
+    pub evidence_refs: Vec<String>,
+
+    /// Timestamp of delta calculation
+    pub timestamp: DateTime<Utc>,
+}
+
+impl Phase7Signals {
+    /// Create empty signals container
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Add hypothesis signal
+    pub fn with_hypothesis(mut self, signal: HypothesisSignal) -> Self {
+        self.hypothesis_signal = Some(signal);
+        self
+    }
+
+    /// Add simulation outcome signal
+    pub fn with_simulation_outcome(mut self, signal: SimulationOutcomeSignal) -> Self {
+        self.simulation_outcome_signal = Some(signal);
+        self
+    }
+
+    /// Add confidence delta signal
+    pub fn with_confidence_delta(mut self, signal: ConfidenceDeltaSignal) -> Self {
+        self.confidence_delta_signal = Some(signal);
+        self
+    }
+
+    /// Check if at least one signal is present (Phase 7 requirement)
+    pub fn has_signal(&self) -> bool {
+        self.hypothesis_signal.is_some()
+            || self.simulation_outcome_signal.is_some()
+            || self.confidence_delta_signal.is_some()
+    }
+}
+
+// =============================================================================
+// DecisionEvent (per constitution requirements + Phase 7 hardening)
 // =============================================================================
 
 /// DecisionEvent for ruvector-service persistence
 /// Per constitution: MUST emit exactly ONE DecisionEvent per invocation
+/// Per Phase 7: MUST include agent identity and at least one signal
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DecisionEvent {
-    /// Agent identifier
+    /// Agent identifier (legacy, kept for backward compatibility)
     pub agent_id: String,
 
-    /// Agent version (semantic version)
+    /// Agent version (legacy, kept for backward compatibility)
     pub agent_version: String,
+
+    /// Full agent identity (Phase 7 requirement)
+    pub agent_identity: AgentIdentity,
 
     /// Decision type (from PublicationDecisionType)
     pub decision_type: String,
@@ -634,6 +833,10 @@ pub struct DecisionEvent {
 
     /// Timestamp (UTC)
     pub timestamp: DateTime<Utc>,
+
+    /// Phase 7 signals (REQUIRED for Phase 7 agents)
+    #[serde(default)]
+    pub signals: Phase7Signals,
 }
 
 /// Decision outputs structure
@@ -695,7 +898,7 @@ impl DecisionEvent {
     /// Current agent version
     pub const AGENT_VERSION: &'static str = "1.0.0";
 
-    /// Create a new DecisionEvent
+    /// Create a new DecisionEvent with Phase 7 compliance
     pub fn new(
         decision_type: PublicationDecisionType,
         inputs_hash: String,
@@ -704,9 +907,11 @@ impl DecisionEvent {
         constraints_applied: PublicationConstraints,
         execution_ref: String,
     ) -> Self {
+        let agent_identity = AgentIdentity::for_publication();
         Self {
-            agent_id: Self::AGENT_ID.to_string(),
-            agent_version: Self::AGENT_VERSION.to_string(),
+            agent_id: agent_identity.source_agent.clone(),
+            agent_version: agent_identity.agent_version.clone(),
+            agent_identity,
             decision_type: decision_type.as_str().to_string(),
             inputs_hash,
             outputs,
@@ -714,7 +919,75 @@ impl DecisionEvent {
             constraints_applied,
             execution_ref,
             timestamp: Utc::now(),
+            signals: Phase7Signals::default(),
         }
+    }
+
+    /// Create a new DecisionEvent with custom agent identity
+    pub fn with_identity(
+        agent_identity: AgentIdentity,
+        decision_type: PublicationDecisionType,
+        inputs_hash: String,
+        outputs: DecisionOutputs,
+        confidence: PublicationConfidence,
+        constraints_applied: PublicationConstraints,
+        execution_ref: String,
+    ) -> Self {
+        Self {
+            agent_id: agent_identity.source_agent.clone(),
+            agent_version: agent_identity.agent_version.clone(),
+            agent_identity,
+            decision_type: decision_type.as_str().to_string(),
+            inputs_hash,
+            outputs,
+            confidence,
+            constraints_applied,
+            execution_ref,
+            timestamp: Utc::now(),
+            signals: Phase7Signals::default(),
+        }
+    }
+
+    /// Add Phase 7 signals to the event
+    pub fn with_signals(mut self, signals: Phase7Signals) -> Self {
+        self.signals = signals;
+        self
+    }
+
+    /// Add a hypothesis signal
+    pub fn with_hypothesis_signal(mut self, signal: HypothesisSignal) -> Self {
+        self.signals.hypothesis_signal = Some(signal);
+        self
+    }
+
+    /// Add a simulation outcome signal
+    pub fn with_simulation_signal(mut self, signal: SimulationOutcomeSignal) -> Self {
+        self.signals.simulation_outcome_signal = Some(signal);
+        self
+    }
+
+    /// Add a confidence delta signal
+    pub fn with_confidence_delta_signal(mut self, signal: ConfidenceDeltaSignal) -> Self {
+        self.signals.confidence_delta_signal = Some(signal);
+        self
+    }
+
+    /// Validate Phase 7 compliance
+    pub fn validate_phase7(&self) -> Result<(), String> {
+        // Validate agent identity
+        self.agent_identity.validate()?;
+
+        // Phase 7 agents SHOULD emit at least one signal
+        // This is a warning, not an error, to maintain backward compatibility
+        if !self.signals.has_signal() {
+            tracing::warn!(
+                agent_id = %self.agent_id,
+                decision_type = %self.decision_type,
+                "DecisionEvent missing Phase 7 signals"
+            );
+        }
+
+        Ok(())
     }
 }
 
@@ -771,5 +1044,63 @@ mod tests {
 
         assert_eq!(event.agent_id, DecisionEvent::AGENT_ID);
         assert_eq!(event.decision_type, "benchmark_publish");
+        // Phase 7: Verify agent identity is populated
+        assert!(!event.agent_identity.source_agent.is_empty());
+        assert!(!event.agent_identity.phase.is_empty());
+        assert!(!event.agent_identity.layer.is_empty());
+    }
+
+    #[test]
+    fn test_phase7_signals() {
+        let hypothesis = HypothesisSignal {
+            hypothesis_id: "hyp-001".to_string(),
+            statement: "Model X outperforms Y on task Z".to_string(),
+            prior_probability: 0.6,
+            posterior_probability: Some(0.85),
+            evidence_refs: vec!["run-123".to_string()],
+            timestamp: Utc::now(),
+        };
+
+        let signals = Phase7Signals::new()
+            .with_hypothesis(hypothesis);
+
+        assert!(signals.has_signal());
+        assert!(signals.hypothesis_signal.is_some());
+        assert!(signals.simulation_outcome_signal.is_none());
+        assert!(signals.confidence_delta_signal.is_none());
+    }
+
+    #[test]
+    fn test_confidence_delta_signal() {
+        let delta = ConfidenceDeltaSignal {
+            previous_confidence: 0.75,
+            current_confidence: 0.85,
+            delta: 0.10,
+            reason: "Additional reproductions".to_string(),
+            evidence_refs: vec!["repro-456".to_string()],
+            timestamp: Utc::now(),
+        };
+
+        let signals = Phase7Signals::new()
+            .with_confidence_delta(delta);
+
+        assert!(signals.has_signal());
+        assert!(signals.confidence_delta_signal.is_some());
+        assert_eq!(signals.confidence_delta_signal.as_ref().unwrap().delta, 0.10);
+    }
+
+    #[test]
+    fn test_agent_identity_validation() {
+        let identity = AgentIdentity::default();
+        assert!(identity.validate().is_ok());
+
+        let empty_identity = AgentIdentity {
+            source_agent: "".to_string(),
+            domain: "benchmark".to_string(),
+            phase: "phase7".to_string(),
+            layer: "layer2".to_string(),
+            agent_version: "1.0.0".to_string(),
+        };
+        assert!(empty_identity.validate().is_err());
     }
 }

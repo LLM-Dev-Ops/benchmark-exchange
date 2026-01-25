@@ -66,6 +66,46 @@ impl Default for RuVectorConfig {
     }
 }
 
+impl RuVectorConfig {
+    /// Validate configuration for production use
+    /// Per Phase 7: MUST fail fast if RuVector is not properly configured
+    pub fn validate_production(&self) -> Result<(), ExternalConsumerError> {
+        // Check RUVECTOR_SERVICE_URL is explicitly set (not default localhost)
+        let env_url = std::env::var("RUVECTOR_SERVICE_URL");
+        if env_url.is_err() {
+            return Err(ExternalConsumerError::ConfigurationError(
+                "RUVECTOR_SERVICE_URL environment variable is required but not set".to_string(),
+            ));
+        }
+
+        // Check RUVECTOR_API_KEY is set
+        if self.api_key.is_none() {
+            return Err(ExternalConsumerError::ConfigurationError(
+                "RUVECTOR_API_KEY environment variable is required but not set".to_string(),
+            ));
+        }
+
+        // Validate URL is not localhost in production
+        let platform_env = std::env::var("PLATFORM_ENV").unwrap_or_default();
+        if platform_env == "prod" || platform_env == "production" {
+            if self.base_url.contains("localhost") || self.base_url.contains("127.0.0.1") {
+                return Err(ExternalConsumerError::ConfigurationError(
+                    "RUVECTOR_SERVICE_URL cannot be localhost in production".to_string(),
+                ));
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Create config from environment with validation
+    pub fn from_env_validated() -> Result<Self, ExternalConsumerError> {
+        let config = Self::default();
+        config.validate_production()?;
+        Ok(config)
+    }
+}
+
 // =============================================================================
 // Request/Response Types
 // =============================================================================
@@ -222,6 +262,53 @@ impl HttpRuVectorClient {
             config,
             http_client,
         })
+    }
+
+    /// Create a new client with production validation
+    /// Per Phase 7: MUST crash if RuVector is unavailable at startup
+    pub fn new_validated(config: RuVectorConfig) -> ExternalConsumerResult<Self> {
+        // Validate config first
+        config.validate_production()?;
+        Self::new(config)
+    }
+
+    /// Verify RuVector service is available at startup
+    /// Per Phase 7: If health check fails, CRASH THE SERVICE
+    /// Returns an error if the service is unreachable
+    pub async fn verify_availability(&self) -> ExternalConsumerResult<()> {
+        info!(
+            base_url = %self.config.base_url,
+            "Verifying RuVector service availability..."
+        );
+
+        let health = self.health_check().await?;
+
+        if !health.healthy {
+            let error_msg = health.error.unwrap_or_else(|| "Unknown error".to_string());
+            error!(
+                base_url = %self.config.base_url,
+                latency_ms = health.latency_ms,
+                error = %error_msg,
+                "RuVector service health check FAILED"
+            );
+            return Err(ExternalConsumerError::ServiceUnavailable(format!(
+                "RuVector service unavailable at startup: {}",
+                error_msg
+            )));
+        }
+
+        info!(
+            base_url = %self.config.base_url,
+            latency_ms = health.latency_ms,
+            "RuVector service is available and healthy"
+        );
+
+        Ok(())
+    }
+
+    /// Get the configuration
+    pub fn config(&self) -> &RuVectorConfig {
+        &self.config
     }
 
     /// Build the full URL for an endpoint

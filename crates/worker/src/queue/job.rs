@@ -97,6 +97,14 @@ pub struct Job {
     pub completed_at: Option<DateTime<Utc>>,
     /// Error message if failed
     pub error: Option<String>,
+    /// Execution ID for agentics-managed invocations.
+    /// When present, the worker creates an `ExecutionContext` to emit spans.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub execution_id: Option<Uuid>,
+    /// Parent span ID for agentics-managed invocations.
+    /// Required together with `execution_id` to build the execution span tree.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parent_span_id: Option<Uuid>,
 }
 
 impl Job {
@@ -115,7 +123,25 @@ impl Job {
             started_at: None,
             completed_at: None,
             error: None,
+            execution_id: None,
+            parent_span_id: None,
         }
+    }
+
+    /// Create a new job with agentics execution context.
+    ///
+    /// When processed, the worker will create an `ExecutionContext` and emit
+    /// execution spans into the agentics execution graph.
+    pub fn new_with_execution(
+        job_type: JobType,
+        priority: JobPriority,
+        execution_id: Uuid,
+        parent_span_id: Uuid,
+    ) -> Self {
+        let mut job = Self::new(job_type, priority);
+        job.execution_id = Some(execution_id);
+        job.parent_span_id = Some(parent_span_id);
+        job
     }
 
     /// Create a delayed job
@@ -137,6 +163,21 @@ impl Job {
             started_at: None,
             completed_at: None,
             error: None,
+            execution_id: None,
+            parent_span_id: None,
+        }
+    }
+
+    /// Build an `ExecutionContext` from this job's execution fields, if present.
+    ///
+    /// Returns `Some(ExecutionContext)` when both `execution_id` and `parent_span_id`
+    /// are set, `None` otherwise (non-agentics job).
+    pub fn execution_context(&self) -> Option<llm_benchmark_common::execution::ExecutionContext> {
+        match (self.execution_id, self.parent_span_id) {
+            (Some(exec_id), Some(parent_id)) => {
+                Some(llm_benchmark_common::execution::ExecutionContext::new(exec_id, parent_id))
+            }
+            _ => None,
         }
     }
 

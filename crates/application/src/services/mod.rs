@@ -17,6 +17,7 @@ pub use user::*;
 
 use crate::ApplicationError;
 use async_trait::async_trait;
+use llm_benchmark_common::execution::ExecutionContext;
 use std::sync::Arc;
 
 /// Service configuration
@@ -125,6 +126,9 @@ pub struct ServiceContext {
     pub organization_id: Option<String>,
     /// Whether the user has admin privileges
     pub is_admin: bool,
+    /// Agentics execution context for span tracking.
+    /// Present when this operation is part of an externally-invoked execution.
+    pub execution_ctx: Option<ExecutionContext>,
 }
 
 impl ServiceContext {
@@ -134,6 +138,7 @@ impl ServiceContext {
             correlation_id,
             organization_id: None,
             is_admin: false,
+            execution_ctx: None,
         }
     }
 
@@ -143,6 +148,7 @@ impl ServiceContext {
             correlation_id,
             organization_id: None,
             is_admin: false,
+            execution_ctx: None,
         }
     }
 
@@ -154,6 +160,21 @@ impl ServiceContext {
     pub fn with_admin(mut self) -> Self {
         self.is_admin = true;
         self
+    }
+
+    /// Attach an Agentics execution context to this service context.
+    pub fn with_execution(mut self, exec_ctx: ExecutionContext) -> Self {
+        self.execution_ctx = Some(exec_ctx);
+        self
+    }
+
+    /// Get execution context, or return error if not present.
+    pub fn require_execution(&self) -> Result<&ExecutionContext, ApplicationError> {
+        self.execution_ctx.as_ref().ok_or_else(|| {
+            ApplicationError::InvalidInput(
+                "Execution context (parent_span_id) is required".to_string(),
+            )
+        })
     }
 
     pub fn require_authenticated(&self) -> Result<&str, ApplicationError> {

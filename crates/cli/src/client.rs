@@ -13,6 +13,10 @@ pub struct ApiClient {
     client: Client,
     base_url: String,
     auth_token: Option<String>,
+    /// Agentics execution ID (sent as X-Execution-Id header when present)
+    execution_id: Option<String>,
+    /// Agentics parent span ID (sent as X-Parent-Span-Id header when present)
+    parent_span_id: Option<String>,
 }
 
 impl ApiClient {
@@ -27,6 +31,8 @@ impl ApiClient {
             client,
             base_url: config.api_endpoint.clone(),
             auth_token: config.auth_token.clone(),
+            execution_id: None,
+            parent_span_id: None,
         })
     }
 
@@ -41,13 +47,39 @@ impl ApiClient {
             client,
             base_url,
             auth_token,
+            execution_id: None,
+            parent_span_id: None,
         })
     }
 
-    /// Add authentication header if token is available
-    fn add_auth(&self, builder: RequestBuilder) -> RequestBuilder {
-        if let Some(token) = &self.auth_token {
+    /// Set agentics execution context headers.
+    ///
+    /// When set, these are sent as `X-Execution-Id` and `X-Parent-Span-Id`
+    /// headers on every request, enabling the API to create execution spans.
+    pub fn with_execution_context(
+        mut self,
+        execution_id: Option<String>,
+        parent_span_id: Option<String>,
+    ) -> Self {
+        self.execution_id = execution_id;
+        self.parent_span_id = parent_span_id;
+        self
+    }
+
+    /// Add authentication and execution context headers to a request.
+    fn add_headers(&self, builder: RequestBuilder) -> RequestBuilder {
+        let builder = if let Some(token) = &self.auth_token {
             builder.bearer_auth(token)
+        } else {
+            builder
+        };
+        let builder = if let Some(exec_id) = &self.execution_id {
+            builder.header("X-Execution-Id", exec_id)
+        } else {
+            builder
+        };
+        if let Some(parent_id) = &self.parent_span_id {
+            builder.header("X-Parent-Span-Id", parent_id)
         } else {
             builder
         }
@@ -57,7 +89,7 @@ impl ApiClient {
     pub async fn get<T: DeserializeOwned>(&self, path: &str) -> Result<T> {
         let url = format!("{}{}", self.base_url, path);
         let builder = self.client.get(&url);
-        let builder = self.add_auth(builder);
+        let builder = self.add_headers(builder);
 
         let response = builder
             .send()
@@ -75,7 +107,7 @@ impl ApiClient {
     ) -> Result<R> {
         let url = format!("{}{}", self.base_url, path);
         let builder = self.client.post(&url).json(body);
-        let builder = self.add_auth(builder);
+        let builder = self.add_headers(builder);
 
         let response = builder
             .send()
@@ -93,7 +125,7 @@ impl ApiClient {
     ) -> Result<R> {
         let url = format!("{}{}", self.base_url, path);
         let builder = self.client.put(&url).json(body);
-        let builder = self.add_auth(builder);
+        let builder = self.add_headers(builder);
 
         let response = builder
             .send()
@@ -107,7 +139,7 @@ impl ApiClient {
     pub async fn delete<R: DeserializeOwned>(&self, path: &str) -> Result<R> {
         let url = format!("{}{}", self.base_url, path);
         let builder = self.client.delete(&url);
-        let builder = self.add_auth(builder);
+        let builder = self.add_headers(builder);
 
         let response = builder
             .send()
@@ -121,7 +153,7 @@ impl ApiClient {
     pub async fn delete_no_content(&self, path: &str) -> Result<()> {
         let url = format!("{}{}", self.base_url, path);
         let builder = self.client.delete(&url);
-        let builder = self.add_auth(builder);
+        let builder = self.add_headers(builder);
 
         let response = builder
             .send()
@@ -173,7 +205,7 @@ impl ApiClient {
         let form = reqwest::multipart::Form::new().part("file", part);
 
         let builder = self.client.post(&url).multipart(form);
-        let builder = self.add_auth(builder);
+        let builder = self.add_headers(builder);
 
         let response = builder
             .send()

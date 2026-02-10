@@ -52,6 +52,14 @@ struct Cli {
     #[arg(long, global = true, env = "LLM_BENCHMARK_TOKEN")]
     token: Option<String>,
 
+    /// Agentics execution ID (for Core orchestrator integration)
+    #[arg(long, global = true, env = "LLM_BENCHMARK_EXECUTION_ID")]
+    execution_id: Option<String>,
+
+    /// Agentics parent span ID (for Core orchestrator integration)
+    #[arg(long, global = true, env = "LLM_BENCHMARK_PARENT_SPAN_ID")]
+    parent_span_id: Option<String>,
+
     /// Enable verbose output
     #[arg(short, long, global = true)]
     verbose: bool,
@@ -624,7 +632,11 @@ async fn main() -> Result<()> {
     // Set output format
     config.output_format = cli.format.into();
 
-    let mut ctx = CommandContext::new(config)?;
+    let mut ctx = CommandContext::new_with_execution(
+        config,
+        cli.execution_id,
+        cli.parent_span_id,
+    )?;
 
     // Execute command
     let result = match cli.command {

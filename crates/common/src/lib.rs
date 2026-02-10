@@ -25,6 +25,7 @@
 pub mod config;
 pub mod crypto;
 pub mod datetime;
+pub mod execution;
 pub mod pagination;
 pub mod retry;
 pub mod serialization;
@@ -64,6 +65,10 @@ pub use pagination::{PaginationParams, SortParams, SortDirection, PaginatedResul
 pub use retry::{RetryConfig, retry_with_backoff, ExponentialBackoff};
 pub use telemetry::{init_tracing, create_meter};
 pub use validation::{validate_slug, validate_email, validate_url};
+pub use execution::{
+    ExecutionContext, ExecutionError, ExecutionResult, ExecutionSpan,
+    Artifact, SpanStatus, SpanType, AgentSpanGuard,
+};
 
 /// Common error type used throughout the crate
 pub type Result<T> = std::result::Result<T, anyhow::Error>;

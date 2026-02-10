@@ -1,7 +1,7 @@
 //! gRPC Server implementation
 
 use crate::error::GrpcResult;
-use crate::interceptors::{AuthInterceptor, LoggingInterceptor, MetricsInterceptor};
+use crate::interceptors::{AuthInterceptor, ExecutionInterceptor, LoggingInterceptor, MetricsInterceptor};
 use crate::proto::{
     benchmark_service_server::BenchmarkServiceServer,
     governance_service_server::GovernanceServiceServer,
@@ -111,6 +111,7 @@ impl GrpcServer {
 
         // Create service interceptors
         let auth_interceptor = AuthInterceptor::new();
+        let execution_interceptor = ExecutionInterceptor::new();
         let logging_interceptor = LoggingInterceptor::new();
         let metrics_interceptor = MetricsInterceptor::new();
 

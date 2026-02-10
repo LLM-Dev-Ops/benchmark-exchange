@@ -14,6 +14,7 @@ use crate::validation::{
 use crate::{ApplicationError, ApplicationResult};
 use async_trait::async_trait;
 use std::sync::Arc;
+use llm_benchmark_common::execution::Artifact;
 use tracing::{debug, info, instrument, warn};
 
 /// Organization data transfer object
@@ -141,6 +142,8 @@ where
         ctx: &ServiceContext,
         request: CreateOrganizationRequest,
     ) -> ApplicationResult<OrganizationDto> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("OrganizationAgent"));
+
         // Validate request
         let validation = request.validate_all();
         validation.ensure_valid()?;
@@ -183,10 +186,17 @@ where
             .await?;
 
         // Fetch and return created organization
-        self.repository
+        let result = self.repository
             .get_by_id(&id)
             .await?
-            .ok_or_else(|| ApplicationError::Internal("Failed to fetch created organization".to_string()))
+            .ok_or_else(|| ApplicationError::Internal("Failed to fetch created organization".to_string()));
+
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("organization_created", &id));
+            guard.complete();
+        }
+
+        result
     }
 
     /// Get organization by ID
@@ -196,7 +206,13 @@ where
         ctx: &ServiceContext,
         id: &str,
     ) -> ApplicationResult<Option<OrganizationDto>> {
-        self.repository.get_by_id(id).await
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("OrganizationAgent"));
+
+        let result = self.repository.get_by_id(id).await;
+
+        if let Some(guard) = _guard { guard.complete(); }
+
+        result
     }
 
     /// Get organization by slug
@@ -206,7 +222,13 @@ where
         ctx: &ServiceContext,
         slug: &str,
     ) -> ApplicationResult<Option<OrganizationDto>> {
-        self.repository.get_by_slug(slug).await
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("OrganizationAgent"));
+
+        let result = self.repository.get_by_slug(slug).await;
+
+        if let Some(guard) = _guard { guard.complete(); }
+
+        result
     }
 
     /// List organizations
@@ -216,13 +238,19 @@ where
         ctx: &ServiceContext,
         pagination: Pagination,
     ) -> ApplicationResult<PaginatedResult<OrganizationDto>> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("OrganizationAgent"));
+
         let pagination = Pagination::new(
             pagination.page.max(1),
             pagination.page_size.min(self.config.max_page_size),
         );
 
         let (items, total) = self.repository.list(&pagination).await?;
-        Ok(PaginatedResult::new(items, total, &pagination))
+        let result = PaginatedResult::new(items, total, &pagination);
+
+        if let Some(guard) = _guard { guard.complete(); }
+
+        Ok(result)
     }
 
     /// Update an organization
@@ -233,6 +261,8 @@ where
         id: &str,
         request: UpdateOrganizationRequest,
     ) -> ApplicationResult<OrganizationDto> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("OrganizationAgent"));
+
         // Validate request
         let validation = request.validate_all();
         validation.ensure_valid()?;
@@ -264,10 +294,17 @@ where
         info!(org_id = %id, "Organization updated");
 
         // Fetch and return updated organization
-        self.repository
+        let result = self.repository
             .get_by_id(id)
             .await?
-            .ok_or_else(|| ApplicationError::Internal("Failed to fetch updated organization".to_string()))
+            .ok_or_else(|| ApplicationError::Internal("Failed to fetch updated organization".to_string()));
+
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("organization_updated", id));
+            guard.complete();
+        }
+
+        result
     }
 
     /// Add a member to an organization
@@ -278,6 +315,8 @@ where
         org_id: &str,
         request: AddMemberRequest,
     ) -> ApplicationResult<OrganizationMemberDto> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("OrganizationAgent"));
+
         // Validate request
         let validation = request.validate_all();
         validation.ensure_valid()?;
@@ -320,10 +359,17 @@ where
 
         // Get members and return the new one
         let members = self.repository.get_members(org_id).await?;
-        members
+        let result = members
             .into_iter()
             .find(|m| m.user_id == request.user_id)
-            .ok_or_else(|| ApplicationError::Internal("Failed to fetch added member".to_string()))
+            .ok_or_else(|| ApplicationError::Internal("Failed to fetch added member".to_string()));
+
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("organization_member_added", &request.user_id));
+            guard.complete();
+        }
+
+        result
     }
 
     /// Update a member's role
@@ -335,6 +381,8 @@ where
         user_id: &str,
         role: OrganizationRole,
     ) -> ApplicationResult<OrganizationMemberDto> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("OrganizationAgent"));
+
         // Check authorization - only owners can change roles
         self.require_org_owner(ctx, org_id).await?;
 
@@ -379,10 +427,17 @@ where
 
         // Get members and return the updated one
         let members = self.repository.get_members(org_id).await?;
-        members
+        let result = members
             .into_iter()
             .find(|m| m.user_id == user_id)
-            .ok_or_else(|| ApplicationError::Internal("Failed to fetch updated member".to_string()))
+            .ok_or_else(|| ApplicationError::Internal("Failed to fetch updated member".to_string()));
+
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("organization_member_role_updated", user_id));
+            guard.complete();
+        }
+
+        result
     }
 
     /// Remove a member from an organization
@@ -393,6 +448,8 @@ where
         org_id: &str,
         user_id: &str,
     ) -> ApplicationResult<()> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("OrganizationAgent"));
+
         let current_user_id = ctx.require_authenticated()?;
 
         // Users can leave on their own, or admins/owners can remove others
@@ -437,6 +494,11 @@ where
             })
             .await?;
 
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("organization_member_removed", user_id));
+            guard.complete();
+        }
+
         Ok(())
     }
 
@@ -447,13 +509,19 @@ where
         ctx: &ServiceContext,
         org_id: &str,
     ) -> ApplicationResult<Vec<OrganizationMemberDto>> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("OrganizationAgent"));
+
         // Check organization exists
         self.repository
             .get_by_id(org_id)
             .await?
             .ok_or_else(|| ApplicationError::NotFound(format!("Organization not found: {}", org_id)))?;
 
-        self.repository.get_members(org_id).await
+        let result = self.repository.get_members(org_id).await;
+
+        if let Some(guard) = _guard { guard.complete(); }
+
+        result
     }
 
     /// Get organizations for a user
@@ -463,12 +531,20 @@ where
         ctx: &ServiceContext,
         user_id: &str,
     ) -> ApplicationResult<Vec<(OrganizationDto, OrganizationRole)>> {
-        self.repository.get_user_organizations(user_id).await
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("OrganizationAgent"));
+
+        let result = self.repository.get_user_organizations(user_id).await;
+
+        if let Some(guard) = _guard { guard.complete(); }
+
+        result
     }
 
     /// Delete an organization
     #[instrument(skip(self, ctx), fields(correlation_id = %ctx.correlation_id))]
     pub async fn delete(&self, ctx: &ServiceContext, id: &str) -> ApplicationResult<()> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("OrganizationAgent"));
+
         // Only owners can delete
         self.require_org_owner(ctx, id).await?;
 
@@ -482,6 +558,11 @@ where
         self.repository.delete(id).await?;
 
         info!(org_id = %id, "Organization deleted");
+
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("organization_deleted", id));
+            guard.complete();
+        }
 
         Ok(())
     }

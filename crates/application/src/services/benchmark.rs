@@ -15,6 +15,7 @@ use crate::{ApplicationError, ApplicationResult};
 use async_trait::async_trait;
 use llm_benchmark_domain::benchmark::{BenchmarkCategory, BenchmarkMetadata, BenchmarkStatus};
 use llm_benchmark_domain::identifiers::{BenchmarkId, BenchmarkVersionId, UserId};
+use llm_benchmark_common::execution::Artifact;
 use std::sync::Arc;
 use tracing::{debug, info, instrument, warn};
 
@@ -146,6 +147,8 @@ where
         ctx: &ServiceContext,
         request: CreateBenchmarkRequest,
     ) -> ApplicationResult<BenchmarkDto> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("BenchmarkAgent"));
+
         // Validate request
         let validation = request.validate_all();
         validation.ensure_valid()?;
@@ -187,6 +190,12 @@ where
             })
             .await?;
 
+        // Attach artifact and complete agent span
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("benchmark_created", &id));
+            guard.complete();
+        }
+
         // Fetch and return the created benchmark
         self.repository
             .get_by_id(&id)
@@ -201,8 +210,11 @@ where
         ctx: &ServiceContext,
         id: &str,
     ) -> ApplicationResult<Option<BenchmarkDto>> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("BenchmarkAgent"));
         debug!(benchmark_id = %id, "Fetching benchmark");
-        self.repository.get_by_id(id).await
+        let result = self.repository.get_by_id(id).await?;
+        if let Some(guard) = _guard { guard.complete(); }
+        Ok(result)
     }
 
     /// Get a benchmark by slug
@@ -212,8 +224,11 @@ where
         ctx: &ServiceContext,
         slug: &str,
     ) -> ApplicationResult<Option<BenchmarkDto>> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("BenchmarkAgent"));
         debug!(slug = %slug, "Fetching benchmark by slug");
-        self.repository.get_by_slug(slug).await
+        let result = self.repository.get_by_slug(slug).await?;
+        if let Some(guard) = _guard { guard.complete(); }
+        Ok(result)
     }
 
     /// List benchmarks with filters and pagination
@@ -224,6 +239,8 @@ where
         filters: BenchmarkFilters,
         pagination: Pagination,
     ) -> ApplicationResult<PaginatedResult<BenchmarkDto>> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("BenchmarkAgent"));
+
         // Clamp page size
         let pagination = Pagination::new(
             pagination.page.max(1),
@@ -231,6 +248,7 @@ where
         );
 
         let (items, total) = self.repository.list(&filters, &pagination).await?;
+        if let Some(guard) = _guard { guard.complete(); }
         Ok(PaginatedResult::new(items, total, &pagination))
     }
 
@@ -242,6 +260,8 @@ where
         id: &str,
         request: UpdateBenchmarkRequest,
     ) -> ApplicationResult<BenchmarkDto> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("BenchmarkAgent"));
+
         // Validate request
         let validation = request.validate_all();
         validation.ensure_valid()?;
@@ -276,6 +296,11 @@ where
             })
             .await?;
 
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("benchmark_updated", id));
+            guard.complete();
+        }
+
         // Fetch and return updated benchmark
         self.repository
             .get_by_id(id)
@@ -291,6 +316,8 @@ where
         id: &str,
         request: StatusTransitionRequest,
     ) -> ApplicationResult<BenchmarkDto> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("BenchmarkAgent"));
+
         // Validate request
         let validation = request.validate_all();
         validation.ensure_valid()?;
@@ -331,6 +358,11 @@ where
             })
             .await?;
 
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("benchmark_status_changed", id));
+            guard.complete();
+        }
+
         // Fetch and return updated benchmark
         self.repository
             .get_by_id(id)
@@ -346,6 +378,8 @@ where
         benchmark_id: &str,
         request: CreateVersionRequest,
     ) -> ApplicationResult<BenchmarkVersionDto> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("BenchmarkAgent"));
+
         // Validate request
         let validation = request.validate_all();
         validation.ensure_valid()?;
@@ -392,6 +426,11 @@ where
             })
             .await?;
 
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("benchmark_version_created", &version_id));
+            guard.complete();
+        }
+
         // Get versions and return the new one
         let versions = self.repository.get_versions(benchmark_id).await?;
         versions
@@ -407,6 +446,8 @@ where
         ctx: &ServiceContext,
         benchmark_id: &str,
     ) -> ApplicationResult<Vec<BenchmarkVersionDto>> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("BenchmarkAgent"));
+
         // Check benchmark exists
         self.repository
             .get_by_id(benchmark_id)
@@ -415,12 +456,15 @@ where
                 ApplicationError::NotFound(format!("Benchmark not found: {}", benchmark_id))
             })?;
 
-        self.repository.get_versions(benchmark_id).await
+        let result = self.repository.get_versions(benchmark_id).await?;
+        if let Some(guard) = _guard { guard.complete(); }
+        Ok(result)
     }
 
     /// Delete a benchmark (admin only)
     #[instrument(skip(self, ctx), fields(correlation_id = %ctx.correlation_id))]
     pub async fn delete(&self, ctx: &ServiceContext, id: &str) -> ApplicationResult<()> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("BenchmarkAgent"));
         // Check authorization
         let auth = self.authorizer.can_delete_benchmark(ctx, id).await;
         auth.ensure_allowed()?;
@@ -435,6 +479,11 @@ where
         self.repository.delete(id).await?;
 
         info!(benchmark_id = %id, "Benchmark deleted");
+
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("benchmark_deleted", id));
+            guard.complete();
+        }
 
         Ok(())
     }

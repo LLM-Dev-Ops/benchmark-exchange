@@ -19,6 +19,7 @@ use llm_benchmark_domain::submission::{
 };
 use std::collections::HashMap;
 use std::sync::Arc;
+use llm_benchmark_common::execution::Artifact;
 use tracing::{debug, info, instrument, warn};
 
 /// Submission data transfer object
@@ -160,6 +161,8 @@ where
         ctx: &ServiceContext,
         request: CreateSubmissionRequest,
     ) -> ApplicationResult<SubmissionDto> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("SubmissionAgent"));
+
         // Validate request
         let validation = request.validate_all();
         validation.ensure_valid()?;
@@ -236,6 +239,11 @@ where
             })
             .await?;
 
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("submission_created", &id));
+            guard.complete();
+        }
+
         // Fetch and return the created submission
         self.repository
             .get_by_id(&id)
@@ -250,6 +258,8 @@ where
         ctx: &ServiceContext,
         id: &str,
     ) -> ApplicationResult<Option<SubmissionDto>> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("SubmissionAgent"));
+
         let submission = self.repository.get_by_id(id).await?;
 
         // Check visibility
@@ -266,6 +276,7 @@ where
             }
         }
 
+        if let Some(guard) = _guard { guard.complete(); }
         Ok(submission)
     }
 
@@ -276,13 +287,17 @@ where
         ctx: &ServiceContext,
         id: &str,
     ) -> ApplicationResult<Option<SubmissionResults>> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("SubmissionAgent"));
+
         // First check if user can view this submission
         let submission = self.get_by_id(ctx, id).await?;
         if submission.is_none() {
             return Ok(None);
         }
 
-        self.repository.get_results(id).await
+        let result = self.repository.get_results(id).await;
+        if let Some(guard) = _guard { guard.complete(); }
+        result
     }
 
     /// List submissions with filters
@@ -293,6 +308,8 @@ where
         filters: SubmissionQueryFilters,
         pagination: Pagination,
     ) -> ApplicationResult<PaginatedResult<SubmissionDto>> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("SubmissionAgent"));
+
         // Clamp page size
         let pagination = Pagination::new(
             pagination.page.max(1),
@@ -316,6 +333,7 @@ where
             })
             .collect();
 
+        if let Some(guard) = _guard { guard.complete(); }
         Ok(PaginatedResult::new(items, total, &pagination))
     }
 
@@ -327,6 +345,8 @@ where
         id: &str,
         request: UpdateSubmissionRequest,
     ) -> ApplicationResult<SubmissionDto> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("SubmissionAgent"));
+
         // Validate request
         let validation = request.validate_all();
         validation.ensure_valid()?;
@@ -356,6 +376,11 @@ where
 
         info!(submission_id = %id, "Submission updated");
 
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("submission_updated", id));
+            guard.complete();
+        }
+
         // Fetch and return updated submission
         self.repository
             .get_by_id(id)
@@ -370,6 +395,8 @@ where
         ctx: &ServiceContext,
         request: VerificationRequest,
     ) -> ApplicationResult<SubmissionDto> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("SubmissionAgent"));
+
         // Validate request
         let validation = request.validate_all();
         validation.ensure_valid()?;
@@ -432,6 +459,11 @@ where
             })
             .await?;
 
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("submission_verified", &request.submission_id));
+            guard.complete();
+        }
+
         // Fetch and return updated submission
         self.repository
             .get_by_id(&request.submission_id)
@@ -446,20 +478,24 @@ where
         ctx: &ServiceContext,
         query: LeaderboardQuery,
     ) -> ApplicationResult<Vec<LeaderboardEntryDto>> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("SubmissionAgent"));
+
         // Validate query
         let validation = query.validate_all();
         validation.ensure_valid()?;
 
         let limit = query.limit.unwrap_or(LeaderboardQuery::DEFAULT_LIMIT);
 
-        self.repository
+        let result = self.repository
             .get_leaderboard(
                 &query.benchmark_id,
                 query.benchmark_version_id.as_deref(),
                 limit,
                 query.min_verification_level,
             )
-            .await
+            .await;
+        if let Some(guard) = _guard { guard.complete(); }
+        result
     }
 
     /// Get submissions by user
@@ -470,6 +506,8 @@ where
         user_id: &str,
         pagination: Pagination,
     ) -> ApplicationResult<PaginatedResult<SubmissionDto>> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("SubmissionAgent"));
+
         // Clamp page size
         let pagination = Pagination::new(
             pagination.page.max(1),
@@ -494,12 +532,15 @@ where
             })
             .collect();
 
+        if let Some(guard) = _guard { guard.complete(); }
         Ok(PaginatedResult::new(items, total, &pagination))
     }
 
     /// Delete a submission
     #[instrument(skip(self, ctx), fields(correlation_id = %ctx.correlation_id))]
     pub async fn delete(&self, ctx: &ServiceContext, id: &str) -> ApplicationResult<()> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("SubmissionAgent"));
+
         // Get existing submission
         let existing = self
             .repository
@@ -520,6 +561,11 @@ where
 
         info!(submission_id = %id, "Submission deleted");
 
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("submission_deleted", id));
+            guard.complete();
+        }
+
         Ok(())
     }
 
@@ -531,6 +577,8 @@ where
         id: &str,
         request: ScoringRequest,
     ) -> ApplicationResult<SubmissionResults> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("SubmissionAgent"));
+
         // Check authorization
         ctx.require_admin()?;
 
@@ -555,6 +603,11 @@ where
                 submission_id: id.to_string(),
             })
             .await?;
+
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("submission_rescored", id));
+            guard.complete();
+        }
 
         Ok(results)
     }

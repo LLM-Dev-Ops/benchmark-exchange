@@ -22,19 +22,19 @@
 
 use crate::{
     error::{ApiError, ApiResult},
-    extractors::{AuthenticatedUser, Pagination, ValidatedJson},
-    responses::{ApiResponse, Created, NoContent, PaginatedResponse},
+    extractors::{AuthenticatedUser, OptionalExecutionContext, Pagination, ValidatedJson, build_service_context},
+    responses::{ApiResponse, InstrumentedPaginatedResponse, InstrumentedResponse, PaginatedResponse},
     state::AppState,
 };
 use axum::{
     extract::{Path, Query, State},
     routing::{get, post, put},
-    Json, Router,
+    Router,
 };
 use chrono::{DateTime, Utc};
 use llm_benchmark_application::services::{
     PublicationDto, PublishBenchmarkRequest, ValidateBenchmarkRequest, UpdatePublicationRequest,
-    TransitionStatusRequest, PublicationFilters, Pagination as ServicePagination, ServiceContext,
+    TransitionStatusRequest, PublicationFilters, Pagination as ServicePagination,
     MetricScoreInput, MethodologyInput, DatasetInput, CitationInput,
 };
 use llm_benchmark_domain::publication::{
@@ -355,21 +355,6 @@ pub fn routes() -> Router<AppState> {
         .route("/publications/:id/status", post(transition_status))
 }
 
-/// Helper to create service context from request
-fn create_service_context(user: Option<&AuthenticatedUser>, request_id: &str) -> ServiceContext {
-    match user {
-        Some(u) => {
-            let ctx = ServiceContext::authenticated(u.user_id.to_string(), request_id.to_string());
-            if u.is_admin() {
-                ctx.with_admin()
-            } else {
-                ctx
-            }
-        }
-        None => ServiceContext::anonymous(request_id.to_string()),
-    }
-}
-
 // =============================================================================
 // Handlers
 // =============================================================================
@@ -398,8 +383,11 @@ async fn list_publications(
     State(state): State<AppState>,
     pagination: Pagination,
     Query(query): Query<PublicationListQuery>,
-) -> ApiResult<Json<PaginatedResponse<PublicationListItem>>> {
-    let ctx = ServiceContext::anonymous(uuid::Uuid::new_v4().to_string());
+    exec: OptionalExecutionContext,
+) -> ApiResult<InstrumentedPaginatedResponse<PublicationListItem>> {
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let exec_ctx = exec.0;
+    let ctx = build_service_context(None, &request_id, exec_ctx.clone());
 
     let filters = PublicationFilters {
         benchmark_id: query.benchmark_id,
@@ -437,7 +425,8 @@ async fn list_publications(
         result.total,
     );
 
-    Ok(Json(paginated.into()))
+    let execution = exec_ctx.and_then(|ec| ec.finalize().ok());
+    Ok(InstrumentedPaginatedResponse::new(paginated.into(), execution))
 }
 
 /// Publish benchmark result
@@ -463,8 +452,11 @@ async fn publish_benchmark(
     State(state): State<AppState>,
     user: AuthenticatedUser,
     ValidatedJson(req): ValidatedJson<PublishBenchmarkApiRequest>,
-) -> ApiResult<Created<PublicationDetail>> {
-    let ctx = create_service_context(Some(&user), &uuid::Uuid::new_v4().to_string());
+    exec: OptionalExecutionContext,
+) -> ApiResult<(axum::http::StatusCode, InstrumentedResponse<PublicationDetail>)> {
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let exec_ctx = exec.0;
+    let ctx = build_service_context(Some(&user), &request_id, exec_ctx.clone());
 
     let request = PublishBenchmarkRequest {
         benchmark_id: req.benchmark_id,
@@ -518,7 +510,11 @@ async fn publish_benchmark(
 
     let publication = state.publication_service.publish(&ctx, request).await?;
 
-    Ok(Created(publication.into()))
+    let execution = exec_ctx.and_then(|ec| ec.finalize().ok());
+    Ok((axum::http::StatusCode::CREATED, InstrumentedResponse::new(
+        ApiResponse::success(publication.into()),
+        execution,
+    )))
 }
 
 /// Validate benchmark submission
@@ -538,8 +534,11 @@ async fn publish_benchmark(
 async fn validate_benchmark(
     State(state): State<AppState>,
     ValidatedJson(req): ValidatedJson<ValidateBenchmarkApiRequest>,
-) -> ApiResult<Json<ApiResponse<ValidationResponse>>> {
-    let ctx = ServiceContext::anonymous(uuid::Uuid::new_v4().to_string());
+    exec: OptionalExecutionContext,
+) -> ApiResult<InstrumentedResponse<ValidationResponse>> {
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let exec_ctx = exec.0;
+    let ctx = build_service_context(None, &request_id, exec_ctx.clone());
 
     let request = ValidateBenchmarkRequest {
         benchmark_id: req.benchmark_id,
@@ -566,7 +565,11 @@ async fn validate_benchmark(
 
     let results = state.publication_service.validate(&ctx, request).await?;
 
-    Ok(Json(ApiResponse::success(results.into())))
+    let execution = exec_ctx.and_then(|ec| ec.finalize().ok());
+    Ok(InstrumentedResponse::new(
+        ApiResponse::success(results.into()),
+        execution,
+    ))
 }
 
 /// Get publication by ID
@@ -587,8 +590,11 @@ async fn validate_benchmark(
 async fn get_publication(
     State(state): State<AppState>,
     Path(id): Path<String>,
-) -> ApiResult<Json<ApiResponse<PublicationDetail>>> {
-    let ctx = ServiceContext::anonymous(uuid::Uuid::new_v4().to_string());
+    exec: OptionalExecutionContext,
+) -> ApiResult<InstrumentedResponse<PublicationDetail>> {
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let exec_ctx = exec.0;
+    let ctx = build_service_context(None, &request_id, exec_ctx.clone());
 
     let publication = state
         .publication_service
@@ -596,7 +602,11 @@ async fn get_publication(
         .await?
         .ok_or(ApiError::NotFound)?;
 
-    Ok(Json(ApiResponse::success(publication.into())))
+    let execution = exec_ctx.and_then(|ec| ec.finalize().ok());
+    Ok(InstrumentedResponse::new(
+        ApiResponse::success(publication.into()),
+        execution,
+    ))
 }
 
 /// Inspect publication with full metadata
@@ -617,12 +627,19 @@ async fn get_publication(
 async fn inspect_publication(
     State(state): State<AppState>,
     Path(id): Path<String>,
-) -> ApiResult<Json<ApiResponse<Publication>>> {
-    let ctx = ServiceContext::anonymous(uuid::Uuid::new_v4().to_string());
+    exec: OptionalExecutionContext,
+) -> ApiResult<InstrumentedResponse<Publication>> {
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let exec_ctx = exec.0;
+    let ctx = build_service_context(None, &request_id, exec_ctx.clone());
 
     let publication = state.publication_service.inspect(&ctx, &id).await?;
 
-    Ok(Json(ApiResponse::success(publication)))
+    let execution = exec_ctx.and_then(|ec| ec.finalize().ok());
+    Ok(InstrumentedResponse::new(
+        ApiResponse::success(publication),
+        execution,
+    ))
 }
 
 /// Update publication
@@ -652,8 +669,11 @@ async fn update_publication(
     user: AuthenticatedUser,
     Path(id): Path<String>,
     ValidatedJson(req): ValidatedJson<UpdatePublicationApiRequest>,
-) -> ApiResult<Json<ApiResponse<PublicationDetail>>> {
-    let ctx = create_service_context(Some(&user), &uuid::Uuid::new_v4().to_string());
+    exec: OptionalExecutionContext,
+) -> ApiResult<InstrumentedResponse<PublicationDetail>> {
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let exec_ctx = exec.0;
+    let ctx = build_service_context(Some(&user), &request_id, exec_ctx.clone());
 
     let request = UpdatePublicationRequest {
         tags: req.tags,
@@ -667,7 +687,11 @@ async fn update_publication(
 
     let publication = state.publication_service.update(&ctx, &id, request).await?;
 
-    Ok(Json(ApiResponse::success(publication.into())))
+    let execution = exec_ctx.and_then(|ec| ec.finalize().ok());
+    Ok(InstrumentedResponse::new(
+        ApiResponse::success(publication.into()),
+        execution,
+    ))
 }
 
 /// Transition publication status
@@ -697,8 +721,11 @@ async fn transition_status(
     user: AuthenticatedUser,
     Path(id): Path<String>,
     ValidatedJson(req): ValidatedJson<TransitionStatusApiRequest>,
-) -> ApiResult<Json<ApiResponse<PublicationDetail>>> {
-    let ctx = create_service_context(Some(&user), &uuid::Uuid::new_v4().to_string());
+    exec: OptionalExecutionContext,
+) -> ApiResult<InstrumentedResponse<PublicationDetail>> {
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let exec_ctx = exec.0;
+    let ctx = build_service_context(Some(&user), &request_id, exec_ctx.clone());
 
     let request = TransitionStatusRequest {
         target_status: req.target_status,
@@ -710,5 +737,9 @@ async fn transition_status(
         .transition_status(&ctx, &id, request)
         .await?;
 
-    Ok(Json(ApiResponse::success(publication.into())))
+    let execution = exec_ctx.and_then(|ec| ec.finalize().ok());
+    Ok(InstrumentedResponse::new(
+        ApiResponse::success(publication.into()),
+        execution,
+    ))
 }

@@ -2,26 +2,23 @@
 
 use crate::{
     error::{ApiError, ApiResult},
-    extractors::{AuthenticatedUser, Pagination, ValidatedJson},
-    responses::{ApiResponse, Created, NoContent, PaginatedResponse},
+    extractors::{AuthenticatedUser, OptionalExecutionContext, Pagination, ValidatedJson, build_service_context},
+    responses::{ApiResponse, InstrumentedPaginatedResponse, InstrumentedResponse, NoContent, PaginatedResponse},
     state::AppState,
 };
 use axum::{
     extract::{Path, Query, State},
+    http::StatusCode,
     routing::{get, post, put},
-    Json, Router,
+    Router,
 };
 use llm_benchmark_application::{
-    services::{BenchmarkDto, BenchmarkFilters, BenchmarkVersionDto, Pagination as ServicePagination, ServiceContext},
+    services::{BenchmarkDto, BenchmarkFilters, BenchmarkVersionDto, Pagination as ServicePagination},
     validation::{CreateBenchmarkRequest, CreateVersionRequest, StatusTransitionRequest, UpdateBenchmarkRequest},
 };
-use llm_benchmark_domain::{
-    benchmark::{BenchmarkCategory, BenchmarkStatus},
-    identifiers::{BenchmarkId, BenchmarkVersionId},
-};
+use llm_benchmark_domain::benchmark::{BenchmarkCategory, BenchmarkStatus};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
-use uuid::Uuid;
 use validator::Validate;
 
 /// Benchmark list item (summary)
@@ -195,21 +192,6 @@ pub fn routes() -> Router<AppState> {
         .route("/benchmarks/search", get(search_benchmarks))
 }
 
-/// Helper to create service context from request
-fn create_service_context(user: Option<&AuthenticatedUser>, request_id: &str) -> ServiceContext {
-    match user {
-        Some(u) => {
-            let ctx = ServiceContext::authenticated(u.user_id.to_string(), request_id.to_string());
-            if u.is_admin() {
-                ctx.with_admin()
-            } else {
-                ctx
-            }
-        }
-        None => ServiceContext::anonymous(request_id.to_string()),
-    }
-}
-
 /// List benchmarks
 ///
 /// Returns a paginated list of benchmarks with optional filtering.
@@ -234,8 +216,11 @@ async fn list_benchmarks(
     State(state): State<AppState>,
     pagination: Pagination,
     Query(query): Query<BenchmarkListQuery>,
-) -> ApiResult<Json<PaginatedResponse<BenchmarkListItem>>> {
-    let ctx = ServiceContext::anonymous(uuid::Uuid::new_v4().to_string());
+    exec: OptionalExecutionContext,
+) -> ApiResult<InstrumentedPaginatedResponse<BenchmarkListItem>> {
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let exec_ctx = exec.0;
+    let ctx = build_service_context(None, &request_id, exec_ctx.clone());
 
     let filters = BenchmarkFilters {
         category: query.category,
@@ -263,7 +248,8 @@ async fn list_benchmarks(
         result.total,
     );
 
-    Ok(Json(paginated.into()))
+    let execution = exec_ctx.and_then(|ec| ec.finalize().ok());
+    Ok(InstrumentedPaginatedResponse::new(paginated.into(), execution))
 }
 
 /// Create benchmark
@@ -288,15 +274,18 @@ async fn list_benchmarks(
 async fn create_benchmark(
     State(state): State<AppState>,
     user: AuthenticatedUser,
+    exec: OptionalExecutionContext,
     ValidatedJson(req): ValidatedJson<CreateBenchmarkApiRequest>,
-) -> ApiResult<Created<BenchmarkDetail>> {
+) -> ApiResult<(StatusCode, InstrumentedResponse<BenchmarkDetail>)> {
     if !user.can_propose_benchmarks() {
         return Err(ApiError::Forbidden(
             "Insufficient permissions to create benchmarks".to_string(),
         ));
     }
 
-    let ctx = create_service_context(Some(&user), &uuid::Uuid::new_v4().to_string());
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let exec_ctx = exec.0;
+    let ctx = build_service_context(Some(&user), &request_id, exec_ctx.clone());
 
     let request = CreateBenchmarkRequest {
         name: req.name,
@@ -309,7 +298,11 @@ async fn create_benchmark(
 
     let benchmark = state.benchmark_service.create(&ctx, request).await?;
 
-    Ok(Created(benchmark.into()))
+    let execution = exec_ctx.and_then(|ec| ec.finalize().ok());
+    Ok((StatusCode::CREATED, InstrumentedResponse::new(
+        ApiResponse::success(benchmark.into()),
+        execution,
+    )))
 }
 
 /// Get benchmark by ID
@@ -330,15 +323,19 @@ async fn create_benchmark(
 async fn get_benchmark(
     State(state): State<AppState>,
     Path(id): Path<String>,
-) -> ApiResult<Json<ApiResponse<BenchmarkDetail>>> {
-    let ctx = ServiceContext::anonymous(uuid::Uuid::new_v4().to_string());
+    exec: OptionalExecutionContext,
+) -> ApiResult<InstrumentedResponse<BenchmarkDetail>> {
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let exec_ctx = exec.0;
+    let ctx = build_service_context(None, &request_id, exec_ctx.clone());
 
     let benchmark = state.benchmark_service
         .get_by_id(&ctx, &id)
         .await?
         .ok_or(ApiError::NotFound)?;
 
-    Ok(Json(ApiResponse::success(benchmark.into())))
+    let execution = exec_ctx.and_then(|ec| ec.finalize().ok());
+    Ok(InstrumentedResponse::new(ApiResponse::success(benchmark.into()), execution))
 }
 
 /// Get benchmark by slug
@@ -359,15 +356,19 @@ async fn get_benchmark(
 async fn get_benchmark_by_slug(
     State(state): State<AppState>,
     Path(slug): Path<String>,
-) -> ApiResult<Json<ApiResponse<BenchmarkDetail>>> {
-    let ctx = ServiceContext::anonymous(uuid::Uuid::new_v4().to_string());
+    exec: OptionalExecutionContext,
+) -> ApiResult<InstrumentedResponse<BenchmarkDetail>> {
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let exec_ctx = exec.0;
+    let ctx = build_service_context(None, &request_id, exec_ctx.clone());
 
     let benchmark = state.benchmark_service
         .get_by_slug(&ctx, &slug)
         .await?
         .ok_or(ApiError::NotFound)?;
 
-    Ok(Json(ApiResponse::success(benchmark.into())))
+    let execution = exec_ctx.and_then(|ec| ec.finalize().ok());
+    Ok(InstrumentedResponse::new(ApiResponse::success(benchmark.into()), execution))
 }
 
 /// Update benchmark
@@ -396,9 +397,12 @@ async fn update_benchmark(
     State(state): State<AppState>,
     user: AuthenticatedUser,
     Path(id): Path<String>,
+    exec: OptionalExecutionContext,
     ValidatedJson(req): ValidatedJson<UpdateBenchmarkApiRequest>,
-) -> ApiResult<Json<ApiResponse<BenchmarkDetail>>> {
-    let ctx = create_service_context(Some(&user), &uuid::Uuid::new_v4().to_string());
+) -> ApiResult<InstrumentedResponse<BenchmarkDetail>> {
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let exec_ctx = exec.0;
+    let ctx = build_service_context(Some(&user), &request_id, exec_ctx.clone());
 
     let request = UpdateBenchmarkRequest {
         name: req.name,
@@ -411,7 +415,8 @@ async fn update_benchmark(
         .update(&ctx, &id, request)
         .await?;
 
-    Ok(Json(ApiResponse::success(benchmark.into())))
+    let execution = exec_ctx.and_then(|ec| ec.finalize().ok());
+    Ok(InstrumentedResponse::new(ApiResponse::success(benchmark.into()), execution))
 }
 
 /// Delete benchmark
@@ -438,6 +443,7 @@ async fn delete_benchmark(
     State(state): State<AppState>,
     user: AuthenticatedUser,
     Path(id): Path<String>,
+    exec: OptionalExecutionContext,
 ) -> ApiResult<NoContent> {
     if !user.is_admin() {
         return Err(ApiError::Forbidden(
@@ -445,7 +451,9 @@ async fn delete_benchmark(
         ));
     }
 
-    let ctx = create_service_context(Some(&user), &uuid::Uuid::new_v4().to_string());
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let _exec_ctx = exec.0;
+    let ctx = build_service_context(Some(&user), &request_id, _exec_ctx.clone());
 
     state.benchmark_service.delete(&ctx, &id).await?;
 
@@ -476,8 +484,11 @@ async fn submit_for_review(
     State(state): State<AppState>,
     user: AuthenticatedUser,
     Path(id): Path<String>,
-) -> ApiResult<Json<ApiResponse<BenchmarkDetail>>> {
-    let ctx = create_service_context(Some(&user), &uuid::Uuid::new_v4().to_string());
+    exec: OptionalExecutionContext,
+) -> ApiResult<InstrumentedResponse<BenchmarkDetail>> {
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let exec_ctx = exec.0;
+    let ctx = build_service_context(Some(&user), &request_id, exec_ctx.clone());
 
     let request = StatusTransitionRequest {
         current_status: BenchmarkStatus::Draft,
@@ -489,7 +500,8 @@ async fn submit_for_review(
         .transition_status(&ctx, &id, request)
         .await?;
 
-    Ok(Json(ApiResponse::success(benchmark.into())))
+    let execution = exec_ctx.and_then(|ec| ec.finalize().ok());
+    Ok(InstrumentedResponse::new(ApiResponse::success(benchmark.into()), execution))
 }
 
 /// Approve benchmark
@@ -517,15 +529,18 @@ async fn approve_benchmark(
     State(state): State<AppState>,
     user: AuthenticatedUser,
     Path(id): Path<String>,
+    exec: OptionalExecutionContext,
     ValidatedJson(req): ValidatedJson<ChangeStatusRequest>,
-) -> ApiResult<Json<ApiResponse<BenchmarkDetail>>> {
+) -> ApiResult<InstrumentedResponse<BenchmarkDetail>> {
     if !user.can_review() {
         return Err(ApiError::Forbidden(
             "Insufficient permissions to approve benchmarks".to_string(),
         ));
     }
 
-    let ctx = create_service_context(Some(&user), &uuid::Uuid::new_v4().to_string());
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let exec_ctx = exec.0;
+    let ctx = build_service_context(Some(&user), &request_id, exec_ctx.clone());
 
     let request = StatusTransitionRequest {
         current_status: BenchmarkStatus::UnderReview,
@@ -537,7 +552,8 @@ async fn approve_benchmark(
         .transition_status(&ctx, &id, request)
         .await?;
 
-    Ok(Json(ApiResponse::success(benchmark.into())))
+    let execution = exec_ctx.and_then(|ec| ec.finalize().ok());
+    Ok(InstrumentedResponse::new(ApiResponse::success(benchmark.into()), execution))
 }
 
 /// Reject benchmark
@@ -565,15 +581,18 @@ async fn reject_benchmark(
     State(state): State<AppState>,
     user: AuthenticatedUser,
     Path(id): Path<String>,
+    exec: OptionalExecutionContext,
     ValidatedJson(req): ValidatedJson<ChangeStatusRequest>,
-) -> ApiResult<Json<ApiResponse<BenchmarkDetail>>> {
+) -> ApiResult<InstrumentedResponse<BenchmarkDetail>> {
     if !user.can_review() {
         return Err(ApiError::Forbidden(
             "Insufficient permissions to reject benchmarks".to_string(),
         ));
     }
 
-    let ctx = create_service_context(Some(&user), &uuid::Uuid::new_v4().to_string());
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let exec_ctx = exec.0;
+    let ctx = build_service_context(Some(&user), &request_id, exec_ctx.clone());
 
     // Rejected means going back to draft status with a reason
     let request = StatusTransitionRequest {
@@ -586,7 +605,8 @@ async fn reject_benchmark(
         .transition_status(&ctx, &id, request)
         .await?;
 
-    Ok(Json(ApiResponse::success(benchmark.into())))
+    let execution = exec_ctx.and_then(|ec| ec.finalize().ok());
+    Ok(InstrumentedResponse::new(ApiResponse::success(benchmark.into()), execution))
 }
 
 /// Deprecate benchmark
@@ -614,15 +634,18 @@ async fn deprecate_benchmark(
     State(state): State<AppState>,
     user: AuthenticatedUser,
     Path(id): Path<String>,
+    exec: OptionalExecutionContext,
     ValidatedJson(req): ValidatedJson<ChangeStatusRequest>,
-) -> ApiResult<Json<ApiResponse<BenchmarkDetail>>> {
+) -> ApiResult<InstrumentedResponse<BenchmarkDetail>> {
     if !user.can_review() {
         return Err(ApiError::Forbidden(
             "Insufficient permissions to deprecate benchmarks".to_string(),
         ));
     }
 
-    let ctx = create_service_context(Some(&user), &uuid::Uuid::new_v4().to_string());
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let exec_ctx = exec.0;
+    let ctx = build_service_context(Some(&user), &request_id, exec_ctx.clone());
 
     let request = StatusTransitionRequest {
         current_status: BenchmarkStatus::Active,
@@ -634,7 +657,8 @@ async fn deprecate_benchmark(
         .transition_status(&ctx, &id, request)
         .await?;
 
-    Ok(Json(ApiResponse::success(benchmark.into())))
+    let execution = exec_ctx.and_then(|ec| ec.finalize().ok());
+    Ok(InstrumentedResponse::new(ApiResponse::success(benchmark.into()), execution))
 }
 
 /// List benchmark versions
@@ -655,8 +679,11 @@ async fn deprecate_benchmark(
 async fn list_versions(
     State(state): State<AppState>,
     Path(id): Path<String>,
-) -> ApiResult<Json<ApiResponse<Vec<BenchmarkVersionResponse>>>> {
-    let ctx = ServiceContext::anonymous(uuid::Uuid::new_v4().to_string());
+    exec: OptionalExecutionContext,
+) -> ApiResult<InstrumentedResponse<Vec<BenchmarkVersionResponse>>> {
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let exec_ctx = exec.0;
+    let ctx = build_service_context(None, &request_id, exec_ctx.clone());
 
     let versions = state.benchmark_service
         .get_versions(&ctx, &id)
@@ -664,7 +691,8 @@ async fn list_versions(
 
     let responses: Vec<BenchmarkVersionResponse> = versions.into_iter().map(Into::into).collect();
 
-    Ok(Json(ApiResponse::success(responses)))
+    let execution = exec_ctx.and_then(|ec| ec.finalize().ok());
+    Ok(InstrumentedResponse::new(ApiResponse::success(responses), execution))
 }
 
 /// Create benchmark version
@@ -693,9 +721,12 @@ async fn create_version(
     State(state): State<AppState>,
     user: AuthenticatedUser,
     Path(id): Path<String>,
+    exec: OptionalExecutionContext,
     ValidatedJson(req): ValidatedJson<CreateVersionApiRequest>,
-) -> ApiResult<Created<BenchmarkVersionResponse>> {
-    let ctx = create_service_context(Some(&user), &uuid::Uuid::new_v4().to_string());
+) -> ApiResult<(StatusCode, InstrumentedResponse<BenchmarkVersionResponse>)> {
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let exec_ctx = exec.0;
+    let ctx = build_service_context(Some(&user), &request_id, exec_ctx.clone());
 
     let request = CreateVersionRequest {
         version: req.version,
@@ -708,7 +739,11 @@ async fn create_version(
         .create_version(&ctx, &id, request)
         .await?;
 
-    Ok(Created(version.into()))
+    let execution = exec_ctx.and_then(|ec| ec.finalize().ok());
+    Ok((StatusCode::CREATED, InstrumentedResponse::new(
+        ApiResponse::success(version.into()),
+        execution,
+    )))
 }
 
 /// Search benchmarks
@@ -731,8 +766,11 @@ async fn search_benchmarks(
     State(state): State<AppState>,
     pagination: Pagination,
     Query(params): Query<SearchQuery>,
-) -> ApiResult<Json<PaginatedResponse<BenchmarkListItem>>> {
-    let ctx = ServiceContext::anonymous(uuid::Uuid::new_v4().to_string());
+    exec: OptionalExecutionContext,
+) -> ApiResult<InstrumentedPaginatedResponse<BenchmarkListItem>> {
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let exec_ctx = exec.0;
+    let ctx = build_service_context(None, &request_id, exec_ctx.clone());
 
     let service_pagination = ServicePagination::new(
         pagination.params.page,
@@ -752,7 +790,8 @@ async fn search_benchmarks(
         result.total,
     );
 
-    Ok(Json(paginated.into()))
+    let execution = exec_ctx.and_then(|ec| ec.finalize().ok());
+    Ok(InstrumentedPaginatedResponse::new(paginated.into(), execution))
 }
 
 #[derive(Debug, Deserialize)]

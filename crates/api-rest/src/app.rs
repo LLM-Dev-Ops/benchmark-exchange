@@ -5,7 +5,10 @@
 
 use crate::{
     config::ApiConfig,
-    middleware::{logging_middleware, request_id::request_id_middleware, RateLimitLayer},
+    middleware::{
+        execution_context_middleware, logging_middleware,
+        request_id::request_id_middleware, RateLimitLayer,
+    },
     routes,
     state::AppState,
 };
@@ -71,6 +74,7 @@ pub async fn create_app(config: ApiConfig) -> anyhow::Result<Router> {
                 .layer(rate_limit)
                 // Custom middleware
                 .layer(middleware::from_fn(request_id_middleware))
+                .layer(middleware::from_fn(execution_context_middleware))
                 .layer(middleware::from_fn(logging_middleware)),
         );
 

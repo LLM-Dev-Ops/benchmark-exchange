@@ -8,6 +8,7 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
+use llm_benchmark_common::execution::ExecutionResult;
 use llm_benchmark_common::pagination::PaginatedResult;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
@@ -155,5 +156,72 @@ where
 {
     fn into_response(self) -> Response {
         (StatusCode::ACCEPTED, Json(ApiResponse::success(self.0))).into_response()
+    }
+}
+
+/// API response wrapper that includes execution span data when present.
+///
+/// Used for agentics-managed requests. The `execution` field contains the
+/// repo-level and agent-level spans produced during this invocation.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct InstrumentedResponse<T> {
+    /// The standard API response data.
+    #[serde(flatten)]
+    pub response: ApiResponse<T>,
+
+    /// Execution span tree (present only for agentics-invoked requests).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub execution: Option<ExecutionResult>,
+}
+
+impl<T> InstrumentedResponse<T> {
+    /// Create an instrumented response with execution data.
+    pub fn new(response: ApiResponse<T>, execution: Option<ExecutionResult>) -> Self {
+        Self {
+            response,
+            execution,
+        }
+    }
+}
+
+impl<T> IntoResponse for InstrumentedResponse<T>
+where
+    T: Serialize,
+{
+    fn into_response(self) -> Response {
+        Json(self).into_response()
+    }
+}
+
+/// Paginated API response wrapper that includes execution span data when present.
+///
+/// Used for agentics-managed requests on paginated endpoints.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct InstrumentedPaginatedResponse<T> {
+    /// The standard paginated response data.
+    #[serde(flatten)]
+    pub response: PaginatedResponse<T>,
+
+    /// Execution span tree (present only for agentics-invoked requests).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub execution: Option<ExecutionResult>,
+}
+
+impl<T> InstrumentedPaginatedResponse<T> {
+    /// Create an instrumented paginated response with optional execution data.
+    pub fn new(response: PaginatedResponse<T>, execution: Option<ExecutionResult>) -> Self {
+        Self {
+            response,
+            execution,
+        }
+    }
+}
+
+impl<T> IntoResponse for InstrumentedPaginatedResponse<T>
+where
+    T: Serialize,
+{
+    fn into_response(self) -> Response {
+        Json(self).into_response()
     }
 }

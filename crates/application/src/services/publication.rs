@@ -49,6 +49,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::{debug, error, info, instrument, warn};
 use uuid::Uuid;
+use llm_benchmark_common::execution::Artifact as ExecArtifact;
 
 // =============================================================================
 // Data Transfer Objects
@@ -407,6 +408,7 @@ where
     ) -> ApplicationResult<PublicationDto> {
         let start = std::time::Instant::now();
         let execution_ref = ctx.correlation_id.clone();
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("PublicationAgent"));
 
         // Authorization check
         let auth = self.authorizer.can_publish(ctx, &request.benchmark_id).await;
@@ -615,6 +617,11 @@ where
             .await
             .ok(); // Don't fail on telemetry errors
 
+        if let Some(guard) = _guard {
+            guard.attach_artifact(ExecArtifact::new("publication_created", &publication.id.to_string()));
+            guard.complete();
+        }
+
         Ok(publication.into())
     }
 
@@ -636,6 +643,8 @@ where
     ) -> ApplicationResult<ValidationResults> {
         let start = std::time::Instant::now();
         let execution_ref = ctx.correlation_id.clone();
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("PublicationAgent"));
+        let benchmark_id_ref = request.benchmark_id.clone();
 
         // Authorization check
         let auth = self.authorizer.can_validate(ctx).await;
@@ -767,6 +776,11 @@ where
             .await
             .ok();
 
+        if let Some(guard) = _guard {
+            guard.attach_artifact(ExecArtifact::new("publication_validated", &benchmark_id_ref));
+            guard.complete();
+        }
+
         Ok(results)
     }
 
@@ -781,7 +795,9 @@ where
         ctx: &ServiceContext,
         id: &str,
     ) -> ApplicationResult<Option<PublicationDto>> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("PublicationAgent"));
         let publication = self.repository.get_by_id(id).await?;
+        if let Some(guard) = _guard { guard.complete(); }
         Ok(publication.map(|p| p.into()))
     }
 
@@ -793,6 +809,7 @@ where
         filters: PublicationFilters,
         pagination: Pagination,
     ) -> ApplicationResult<PaginatedResult<PublicationDto>> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("PublicationAgent"));
         let pagination = Pagination::new(
             pagination.page.max(1),
             pagination.page_size.min(self.config.max_page_size),
@@ -801,6 +818,7 @@ where
         let (publications, total) = self.repository.list(&filters, &pagination).await?;
         let items: Vec<PublicationDto> = publications.into_iter().map(|p| p.into()).collect();
 
+        if let Some(guard) = _guard { guard.complete(); }
         Ok(PaginatedResult::new(items, total, &pagination))
     }
 
@@ -818,6 +836,7 @@ where
     ) -> ApplicationResult<PublicationDto> {
         let start = std::time::Instant::now();
         let execution_ref = ctx.correlation_id.clone();
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("PublicationAgent"));
 
         // Authorization check
         let auth = self.authorizer.can_update(ctx, id).await;
@@ -886,6 +905,11 @@ where
             .await
             .ok();
 
+        if let Some(guard) = _guard {
+            guard.attach_artifact(ExecArtifact::new("publication_updated", id));
+            guard.complete();
+        }
+
         Ok(publication.into())
     }
 
@@ -903,6 +927,7 @@ where
     ) -> ApplicationResult<PublicationDto> {
         let start = std::time::Instant::now();
         let execution_ref = ctx.correlation_id.clone();
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("PublicationAgent"));
 
         // Get existing publication
         let mut publication = self
@@ -1002,6 +1027,11 @@ where
             .await
             .ok();
 
+        if let Some(guard) = _guard {
+            guard.attach_artifact(ExecArtifact::new("publication_status_changed", id));
+            guard.complete();
+        }
+
         Ok(publication.into())
     }
 
@@ -1018,6 +1048,7 @@ where
         id: &str,
     ) -> ApplicationResult<Publication> {
         let start = std::time::Instant::now();
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("PublicationAgent"));
 
         let publication = self
             .repository
@@ -1038,6 +1069,7 @@ where
             .await
             .ok();
 
+        if let Some(guard) = _guard { guard.complete(); }
         Ok(publication)
     }
 }

@@ -8,6 +8,7 @@ use crate::validation::{ChangePasswordRequest, CreateApiKeyRequest, CreateUserRe
 use crate::{ApplicationError, ApplicationResult};
 use async_trait::async_trait;
 use std::sync::Arc;
+use llm_benchmark_common::execution::Artifact;
 use tracing::{debug, info, instrument, warn};
 
 /// User data transfer object
@@ -226,7 +227,10 @@ where
         ctx: &ServiceContext,
         id: &str,
     ) -> ApplicationResult<Option<UserDto>> {
-        self.repository.get_by_id(id).await
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("UserAgent"));
+        let result = self.repository.get_by_id(id).await;
+        if let Some(guard) = _guard { guard.complete(); }
+        result
     }
 
     /// Get user by email
@@ -248,7 +252,10 @@ where
         ctx: &ServiceContext,
         id: &str,
     ) -> ApplicationResult<Option<UserProfileDto>> {
-        self.repository.get_profile(id).await
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("UserAgent"));
+        let result = self.repository.get_profile(id).await;
+        if let Some(guard) = _guard { guard.complete(); }
+        result
     }
 
     /// Update user profile
@@ -259,6 +266,8 @@ where
         id: &str,
         request: UpdateUserRequest,
     ) -> ApplicationResult<UserDto> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("UserAgent"));
+
         // Validate request
         let validation = request.validate_all();
         validation.ensure_valid()?;
@@ -297,10 +306,17 @@ where
             .await?;
 
         // Fetch and return updated user
-        self.repository
+        let result = self.repository
             .get_by_id(id)
             .await?
-            .ok_or_else(|| ApplicationError::Internal("Failed to fetch updated user".to_string()))
+            .ok_or_else(|| ApplicationError::Internal("Failed to fetch updated user".to_string()));
+
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("user_updated", id));
+            guard.complete();
+        }
+
+        result
     }
 
     /// Change user password
@@ -311,6 +327,8 @@ where
         id: &str,
         request: ChangePasswordRequest,
     ) -> ApplicationResult<()> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("UserAgent"));
+
         // Validate request
         let validation = request.validate_all();
         validation.ensure_valid()?;
@@ -350,6 +368,11 @@ where
             })
             .await?;
 
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("user_password_changed", id));
+            guard.complete();
+        }
+
         Ok(())
     }
 
@@ -388,6 +411,8 @@ where
         ctx: &ServiceContext,
         request: CreateApiKeyRequest,
     ) -> ApplicationResult<ApiKeyWithSecretDto> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("UserAgent"));
+
         // Validate request
         let validation = request.validate_all();
         validation.ensure_valid()?;
@@ -407,14 +432,22 @@ where
 
         info!(user_id = %user_id, key_id = %key.key.id, "API key created");
 
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("api_key_created", &key.key.id));
+            guard.complete();
+        }
+
         Ok(key)
     }
 
     /// List API keys for a user
     #[instrument(skip(self, ctx), fields(correlation_id = %ctx.correlation_id))]
     pub async fn list_api_keys(&self, ctx: &ServiceContext) -> ApplicationResult<Vec<ApiKeyDto>> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("UserAgent"));
         let user_id = ctx.require_authenticated()?;
-        self.repository.list_api_keys(user_id).await
+        let result = self.repository.list_api_keys(user_id).await;
+        if let Some(guard) = _guard { guard.complete(); }
+        result
     }
 
     /// Revoke an API key
@@ -424,10 +457,17 @@ where
         ctx: &ServiceContext,
         key_id: &str,
     ) -> ApplicationResult<()> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("UserAgent"));
+
         let user_id = ctx.require_authenticated()?;
         self.repository.revoke_api_key(user_id, key_id).await?;
 
         info!(user_id = %user_id, key_id = %key_id, "API key revoked");
+
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("api_key_revoked", key_id));
+            guard.complete();
+        }
 
         Ok(())
     }
@@ -444,6 +484,8 @@ where
     /// Delete a user account
     #[instrument(skip(self, ctx), fields(correlation_id = %ctx.correlation_id))]
     pub async fn delete(&self, ctx: &ServiceContext, id: &str) -> ApplicationResult<()> {
+        let _guard = ctx.execution_ctx.as_ref().map(|exec| exec.agent_guard("UserAgent"));
+
         // Check authorization
         let user_id = ctx.require_authenticated()?;
         if user_id != id && !ctx.is_admin {
@@ -462,6 +504,11 @@ where
         self.repository.delete(id).await?;
 
         info!(user_id = %id, "User deleted");
+
+        if let Some(guard) = _guard {
+            guard.attach_artifact(Artifact::new("user_deleted", id));
+            guard.complete();
+        }
 
         Ok(())
     }

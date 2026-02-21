@@ -1,0 +1,81 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Rust source and build artifacts
+crates/
+target/
+Cargo.toml
+Cargo.lock
+**/*.rs
+**/*.rs.bk
+*.pdb
+.cargo/
+rust-toolchain.toml
+
+# Container and orchestration
+docker/
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+k8s/
+helm/
+deploy/
+
+# CI/CD
+.github/
+cloudbuild*.yaml
+
+# Documentation
+docs/
+plans/
+*.md
+
+# Database
+migrations/
+*.db
+*.sqlite
+backups/
+
+# Benchmarks (test data)
+benchmarks/
+
+# Development
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.*
+*.local
+
+# Testing and coverage
+coverage/
+.tarpaulin/
+test.js
+
+# Build artifacts
+dist/
+build/
+out/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Misc
+*.bak
+*.cache
+.sqlx/
+*.tmp
+tmp/
+temp/

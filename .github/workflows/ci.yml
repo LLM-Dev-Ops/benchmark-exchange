@@ -57,6 +57,35 @@ jobs:
         run: cargo clippy --all-targets --all-features -- -D warnings
 
   # ==========================================================================
+  # Node Manifests (ADR-0001)
+  # ==========================================================================
+  node-manifests:
+    name: Node Manifests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install root manifest (ecosystem integration)
+        run: npm ci
+
+      - name: Install Cloud Function manifest
+        run: npm ci
+        working-directory: functions/agents
+
+      - name: Guard against deploy/ecosystem recoupling
+        run: node scripts/check-function-manifest.mjs
+
+      - name: Run Cloud Function tests
+        run: npm test
+        working-directory: functions/agents
+
+  # ==========================================================================
   # Build
   # ==========================================================================
   build:

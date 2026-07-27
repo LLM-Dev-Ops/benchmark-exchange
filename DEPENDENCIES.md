@@ -35,15 +35,14 @@ root — for example `gcloud functions deploy benchmark-exchange-agents
 only the Node.js builtin `crypto`, and both manifests ship a committed
 `package-lock.json` so installs are reproducible.
 
-`scripts/check-function-manifest.mjs` fails if any `@llm-dev-ops/*` dependency
-appears in `functions/agents/package.json`. Run it alongside `npm ci` against
-both manifests, so an unresolvable dependency fails in a pull request rather
-than in a deploy.
+The `node-manifests` job in `.github/workflows/ci.yml` enforces this on every
+pull request:
 
-> **Pending:** the `node-manifests` CI job that wires those two checks into
-> `.github/workflows/ci.yml` is not yet merged — see the pull request
-> implementing ADR-0001. Until it lands, the guard is available locally but not
-> enforced automatically.
+- `npm ci` runs against both manifests, so an unresolvable dependency fails in
+  the PR rather than in a deploy.
+- `scripts/check-function-manifest.mjs` fails the build if any `@llm-dev-ops/*`
+  dependency appears in `functions/agents/package.json`.
+- The Cloud Function test suite runs against the moved source.
 
 ---
 

@@ -12,12 +12,11 @@
 //!
 //! ## Phase 2B Infra Integration
 //!
-//! As of Phase 2B, this crate integrates with LLM-Infra modules for:
-//! - Configuration loading (`llm-infra-config`)
-//! - Structured logging (`llm-infra-logging`)
-//! - Distributed tracing (`llm-infra-tracing`)
-//! - Error utilities (`llm-infra-errors`)
-//! - Retry logic (`llm-infra-retry`)
+//! As of Phase 2B, this crate integrates with the shared `infra` crates for:
+//! - Configuration loading (`infra-config`)
+//! - Structured logging and distributed tracing (`infra-otel`)
+//! - Error utilities (`infra-errors`)
+//! - Retry logic (`infra-retry`)
 //!
 //! The `infra-integration` feature (enabled by default) uses these centralized modules.
 //! The `legacy-local` feature falls back to local implementations (deprecated).
@@ -33,20 +32,19 @@ pub mod telemetry;
 pub mod validation;
 
 // ============================================================================
-// LLM-Infra Re-exports (Phase 2B Integration)
+// Infra Re-exports (Phase 2B Integration)
 // ============================================================================
 
-/// Re-exports from llm-infra-config for centralized configuration management.
+/// Re-exports from the shared `infra` crates.
 ///
-/// Provides environment-based configuration loading, validation, and hierarchical
-/// configuration merging from multiple sources.
+/// Provides environment-based configuration loading, telemetry, error types,
+/// and retry utilities.
 #[cfg(feature = "infra-integration")]
 pub mod infra {
-    pub use llm_infra_config as config;
-    pub use llm_infra_logging as logging;
-    pub use llm_infra_tracing as tracing;
-    pub use llm_infra_errors as errors;
-    pub use llm_infra_retry as retry;
+    pub use infra_config as config;
+    pub use infra_errors as errors;
+    pub use infra_otel as otel;
+    pub use infra_retry as retry;
 }
 
 // ============================================================================
@@ -81,33 +79,28 @@ pub type Result<T> = std::result::Result<T, anyhow::Error>;
 /// with Infra-compatible API when `infra-integration` feature is enabled.
 #[cfg(feature = "infra-integration")]
 pub mod infra_retry {
-    //! Retry utilities powered by llm-infra-retry.
+    //! Retry utilities powered by infra-retry.
     //!
     //! This module provides a compatibility layer that exposes the same API
-    //! as the local retry module while delegating to llm-infra-retry internally.
+    //! as the local retry module while delegating to infra-retry internally.
 
-    pub use llm_infra_retry::{
-        RetryConfig as InfraRetryConfig,
-        retry_with_backoff as infra_retry_with_backoff,
+    pub use infra_retry::{
         ExponentialBackoff as InfraExponentialBackoff,
+        RetryPolicy as InfraRetryPolicy,
+        retry_with_policy as infra_retry_with_policy,
     };
 
     // Re-export local types for compatibility
     pub use crate::retry::*;
 }
 
-/// Facade for Infra logging functionality.
+/// Facade for Infra telemetry functionality.
+///
+/// `infra` has no separate logging and tracing crates; both are served by
+/// `infra-otel`.
 #[cfg(feature = "infra-integration")]
-pub mod infra_logging {
-    //! Structured logging powered by llm-infra-logging.
+pub mod infra_otel {
+    //! Structured logging and distributed tracing powered by infra-otel.
 
-    pub use llm_infra_logging::*;
-}
-
-/// Facade for Infra tracing functionality.
-#[cfg(feature = "infra-integration")]
-pub mod infra_tracing {
-    //! Distributed tracing powered by llm-infra-tracing.
-
-    pub use llm_infra_tracing::*;
+    pub use infra_otel::*;
 }

@@ -1,0 +1,4 @@
+# Deployed source is index.js plus its manifests only.
+.gcloudignore
+node_modules/
+test.js

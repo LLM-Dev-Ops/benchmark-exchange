@@ -1,0 +1,16 @@
+{
+  "name": "benchmark-exchange-agents",
+  "version": "0.1.0",
+  "description": "Cloud Function deploy manifest for the benchmark-exchange agents handler",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {},
+  "license": "MIT"
+}

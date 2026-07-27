@@ -23,13 +23,11 @@ llm-benchmark-domain = { workspace = true }
 llm-benchmark-common = { workspace = true }
 llm-benchmark-application = { workspace = true }
 
-# LLM-Infra Integration (Phase 2B)
-# Rate limiting with Redis backend and sliding window
-llm-infra-ratelimit = { workspace = true }
-# Structured logging with request correlation
-llm-infra-logging = { workspace = true }
-# Distributed tracing for API endpoints
-llm-infra-tracing = { workspace = true }
+# Infra Integration (Phase 2B)
+# Rate limiting with sliding window
+infra-rate-limit = { workspace = true }
+# Structured logging and distributed tracing for API endpoints
+infra-otel = { workspace = true }
 
 # Async runtime
 tokio = { workspace = true }

@@ -24,11 +24,11 @@ legacy-local = ["backoff"]
 # Internal dependencies
 llm-benchmark-domain = { workspace = true }
 
-# LLM-Infra Integration (Phase 2B)
-# Retry logic with exponential backoff and circuit breaker
-llm-infra-retry = { workspace = true }
+# Infra Integration (Phase 2B)
+# Retry logic with exponential backoff
+infra-retry = { workspace = true }
 # HTTP client abstractions with built-in retry
-llm-infra-client = { workspace = true }
+infra-http = { workspace = true }
 
 # Async runtime
 tokio = { workspace = true }
@@ -58,7 +58,7 @@ url = { workspace = true }
 bytes = { workspace = true }
 futures = { workspace = true }
 
-# Retry logic (legacy - deprecated in favor of llm-infra-retry)
+# Retry logic (legacy - deprecated in favor of infra-retry)
 backoff = { version = "0.4", features = ["tokio"], optional = true }
 
 [dev-dependencies]

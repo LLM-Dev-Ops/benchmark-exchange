@@ -2,7 +2,7 @@
 
 process.env.CORS_ALLOWED_ORIGINS = 'https://example.com';
 
-const { handler } = require('./index');
+const { handler } = require(process.env.BENCHMARK_AGENT_ENTRY || './index');
 const assert = require('assert');
 
 let passed = 0;

@@ -41,8 +41,24 @@ const DATASET_REQUIRED_FIELDS = [
   'split',
 ];
 
+function isPlainObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isFiniteNumber(value) {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function isPositiveInteger(value, maximum = Number.MAX_SAFE_INTEGER) {
+  return Number.isSafeInteger(value) && value > 0 && value <= maximum;
+}
+
 function validatePublishRequest(body) {
   const errors = [];
+
+  if (!isPlainObject(body)) {
+    return [{ field: 'body', message: 'body must be a JSON object' }];
+  }
 
   for (const field of PUBLISH_REQUIRED_FIELDS) {
     if (body[field] === undefined || body[field] === null) {
@@ -50,38 +66,47 @@ function validatePublishRequest(body) {
     }
   }
 
-  if (body.methodology && typeof body.methodology === 'object') {
+  if (body.methodology !== undefined && !isPlainObject(body.methodology)) {
+    errors.push({ field: 'methodology', message: 'methodology must be a JSON object' });
+  } else if (body.methodology) {
     for (const field of METHODOLOGY_REQUIRED_FIELDS) {
-      if (!body.methodology[field]) {
+      if (typeof body.methodology[field] !== 'string' || body.methodology[field].trim() === '') {
         errors.push({ field: `methodology.${field}`, message: `methodology.${field} is required` });
       }
     }
-  } else if (body.methodology === undefined) {
-    // Already caught above
   }
 
-  if (body.dataset && typeof body.dataset === 'object') {
+  if (body.dataset !== undefined && !isPlainObject(body.dataset)) {
+    errors.push({ field: 'dataset', message: 'dataset must be a JSON object' });
+  } else if (body.dataset) {
     for (const field of DATASET_REQUIRED_FIELDS) {
       if (body.dataset[field] === undefined || body.dataset[field] === null) {
         errors.push({ field: `dataset.${field}`, message: `dataset.${field} is required` });
       }
     }
+    if (!isPositiveInteger(body.dataset.example_count, 100_000_000)) {
+      errors.push({ field: 'dataset.example_count', message: 'dataset.example_count must be a positive bounded integer' });
+    }
   }
 
-  if (body.aggregate_score !== undefined && typeof body.aggregate_score !== 'number') {
-    errors.push({ field: 'aggregate_score', message: 'aggregate_score must be a number' });
+  if (body.metric_scores !== undefined && !isPlainObject(body.metric_scores)) {
+    errors.push({ field: 'metric_scores', message: 'metric_scores must be a JSON object' });
   }
 
-  if (body.sample_size !== undefined && (typeof body.sample_size !== 'number' || body.sample_size < 1)) {
-    errors.push({ field: 'sample_size', message: 'sample_size must be a positive integer' });
+  if (body.aggregate_score !== undefined && (!isFiniteNumber(body.aggregate_score) || body.aggregate_score < 0 || body.aggregate_score > 1)) {
+    errors.push({ field: 'aggregate_score', message: 'aggregate_score must be a finite number from 0 to 1' });
   }
 
-  if (body.variance !== undefined && typeof body.variance !== 'number') {
-    errors.push({ field: 'variance', message: 'variance must be a number' });
+  if (body.sample_size !== undefined && !isPositiveInteger(body.sample_size, 100_000_000)) {
+    errors.push({ field: 'sample_size', message: 'sample_size must be a positive bounded integer' });
   }
 
-  if (body.reproduction_count !== undefined && (typeof body.reproduction_count !== 'number' || body.reproduction_count < 1)) {
-    errors.push({ field: 'reproduction_count', message: 'reproduction_count must be a positive integer' });
+  if (body.variance !== undefined && (!isFiniteNumber(body.variance) || body.variance < 0)) {
+    errors.push({ field: 'variance', message: 'variance must be a finite non-negative number' });
+  }
+
+  if (body.reproduction_count !== undefined && !isPositiveInteger(body.reproduction_count, 10_000)) {
+    errors.push({ field: 'reproduction_count', message: 'reproduction_count must be a positive bounded integer' });
   }
 
   return errors;
@@ -91,7 +116,7 @@ function validatePublishRequest(body) {
 // CORS
 // =============================================================================
 
-const ALLOWED_ORIGINS = (process.env.CORS_ALLOWED_ORIGINS || '*').split(',').map(s => s.trim());
+const ALLOWED_ORIGINS = (process.env.CORS_ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
 const ALLOWED_METHODS = 'GET, POST, PUT, OPTIONS';
 const ALLOWED_HEADERS = 'Content-Type, Authorization, X-Correlation-Id, X-Request-Id';
 
@@ -112,9 +137,14 @@ function setCorsHeaders(req, res) {
 // Execution Metadata Builder
 // =============================================================================
 
+function validCorrelationId(value) {
+  return typeof value === 'string' && value.length > 0 && value.length <= 128 && /^[\x20-\x7E]+$/.test(value);
+}
+
 function buildExecutionMetadata(req) {
+  const suppliedCorrelationId = req.headers['x-correlation-id'];
   return {
-    trace_id: req.headers['x-correlation-id'] || crypto.randomUUID(),
+    trace_id: validCorrelationId(suppliedCorrelationId) ? suppliedCorrelationId : crypto.randomUUID(),
     timestamp: new Date().toISOString(),
     service: SERVICE_NAME,
     execution_id: crypto.randomUUID(),

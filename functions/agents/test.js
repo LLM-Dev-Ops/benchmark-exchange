@@ -1,6 +1,8 @@
 'use strict';
 
-const { handler } = require('./index');
+process.env.CORS_ALLOWED_ORIGINS = 'https://example.com';
+
+const { handler } = require(process.env.BENCHMARK_AGENT_ENTRY || './index');
 const assert = require('assert');
 
 let passed = 0;
@@ -26,6 +28,31 @@ function mockRes() {
     set(key, value) { res._headers[key] = value; return res; },
   };
   return res;
+}
+
+function validPublishBody() {
+  return {
+    benchmark_id: 'bench-1',
+    model_provider: 'anthropic',
+    model_name: 'claude-3',
+    model_version: '3.5',
+    aggregate_score: 0.92,
+    metric_scores: { accuracy: { value: 0.92 } },
+    methodology: {
+      framework: 'lm-eval',
+      evaluation_method: 'zero-shot',
+      scoring_method: 'exact_match',
+    },
+    dataset: {
+      dataset_id: 'mmlu',
+      dataset_version: '1.0',
+      example_count: 14042,
+      split: 'test',
+    },
+    sample_size: 1000,
+    variance: 0.03,
+    reproduction_count: 5,
+  };
 }
 
 function test(name, fn) {
@@ -100,11 +127,19 @@ test('OPTIONS returns 204 with CORS headers', () => {
   assert.ok(res._headers['Access-Control-Allow-Headers']);
 });
 
-test('CORS headers set on all responses', () => {
+test('CORS headers set for an explicitly allowed origin', () => {
   const req = mockReq('GET', '/health', null, { origin: 'https://example.com' });
   const res = mockRes();
   handler(req, res);
-  assert.ok(res._headers['Access-Control-Allow-Origin']);
+  assert.strictEqual(res._headers['Access-Control-Allow-Origin'], 'https://example.com');
+  assert.strictEqual(res._headers.Vary, 'Origin');
+});
+
+test('CORS does not reflect an unconfigured origin', () => {
+  const req = mockReq('GET', '/health', null, { origin: 'https://evil.example' });
+  const res = mockRes();
+  handler(req, res);
+  assert.strictEqual(res._headers['Access-Control-Allow-Origin'], undefined);
 });
 
 // ---------------------------------------------------------------------------
@@ -117,6 +152,16 @@ test('execution_metadata.trace_id uses x-correlation-id when provided', () => {
   const res = mockRes();
   handler(req, res);
   assert.strictEqual(res._body.execution_metadata.trace_id, correlationId);
+});
+
+test('invalid correlation IDs are replaced', () => {
+  for (const correlationId of ['bad\nheader', 'x'.repeat(129)]) {
+    const req = mockReq('GET', '/health', null, { 'x-correlation-id': correlationId });
+    const res = mockRes();
+    handler(req, res);
+    assert.notStrictEqual(res._body.execution_metadata.trace_id, correlationId);
+    assert.match(res._body.execution_metadata.trace_id, /^[0-9a-f-]{36}$/);
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -153,6 +198,48 @@ test('POST /v1/benchmark-exchange/publish validates methodology fields', () => {
   const fields = res._body.error.details.map(d => d.field);
   assert.ok(fields.includes('methodology.evaluation_method'));
   assert.ok(fields.includes('methodology.scoring_method'));
+});
+
+test('POST /v1/benchmark-exchange/publish rejects non-object bodies and nested contracts', () => {
+  const invalidBodies = [
+    [],
+    { ...validPublishBody(), methodology: [] },
+    { ...validPublishBody(), dataset: 'mmlu' },
+    { ...validPublishBody(), metric_scores: [] },
+    { ...validPublishBody(), dataset: { ...validPublishBody().dataset, example_count: 1.5 } },
+  ];
+
+  for (const body of invalidBodies) {
+    const req = mockReq('POST', '/v1/benchmark-exchange/publish', body);
+    const res = mockRes();
+    handler(req, res);
+    assert.strictEqual(res._status, 400);
+  }
+});
+
+test('POST /v1/benchmark-exchange/publish rejects unsafe numeric values', () => {
+  const invalidValues = [
+    ['aggregate_score', -0.01],
+    ['aggregate_score', 1.01],
+    ['aggregate_score', Number.NaN],
+    ['sample_size', 1.5],
+    ['sample_size', Number.POSITIVE_INFINITY],
+    ['variance', -0.01],
+    ['variance', Number.NaN],
+    ['reproduction_count', 0],
+    ['reproduction_count', 1.5],
+  ];
+
+  for (const [field, value] of invalidValues) {
+    const req = mockReq('POST', '/v1/benchmark-exchange/publish', {
+      ...validPublishBody(),
+      [field]: value,
+    });
+    const res = mockRes();
+    handler(req, res);
+    assert.strictEqual(res._status, 400, `${field}=${value} should be rejected`);
+    assert.ok(res._body.error.details.some(detail => detail.field === field));
+  }
 });
 
 // ---------------------------------------------------------------------------

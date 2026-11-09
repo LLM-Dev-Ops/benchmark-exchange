@@ -91,6 +91,14 @@ function validatePublishRequest(body) {
 
   if (body.metric_scores !== undefined && !isPlainObject(body.metric_scores)) {
     errors.push({ field: 'metric_scores', message: 'metric_scores must be a JSON object' });
+  } else if (isPlainObject(body.metric_scores)) {
+    // Metrics are raw measurements, not necessarily normalized scores. Preserve
+    // signed values and units such as latency, but never accept malformed data.
+    for (const [metric, score] of Object.entries(body.metric_scores)) {
+      if (!isPlainObject(score) || !isFiniteNumber(score.value)) {
+        errors.push({ field: `metric_scores.${metric}.value`, message: 'metric value must be a finite number' });
+      }
+    }
   }
 
   if (body.aggregate_score !== undefined && (!isFiniteNumber(body.aggregate_score) || body.aggregate_score < 0 || body.aggregate_score > 1)) {

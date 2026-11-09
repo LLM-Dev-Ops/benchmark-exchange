@@ -1,0 +1,68 @@
+{
+  "inverseVerified": true,
+  "baseline": {
+    "chunk_id": "c1ea71",
+    "wall_time_seconds": 0.059425039,
+    "exit_code": 1,
+    "original_token_count": 173,
+    "output": "{\"holdout\":[{\"name\":\"invalid-metric-0\",\"status\":201,\"passed\":false},{\"name\":\"invalid-metric-1\",\"status\":201,\"passed\":false},{\"name\":\"invalid-metric-2\",\"status\":201,\"passed\":false},{\"name\":\"invalid-metric-3\",\"status\":201,\"passed\":false},{\"name\":\"invalid-metric-4\",\"status\":201,\"passed\":false},{\"name\":\"invalid-metric-5\",\"status\":201,\"passed\":false},{\"name\":\"invalid-metric-6\",\"status\":201,\"passed\":false},{\"name\":\"overflow\",\"status\":201,\"passed\":false}],\"anchors\":[{\"name\":\"zero\",\"status\":201,\"passed\":true},{\"name\":\"normal\",\"status\":201,\"passed\":true},{\"name\":\"signed\",\"status\":201,\"passed\":true},{\"name\":\"latency\",\"status\":201,\"passed\":true},{\"name\":\"empty\",\"status\":201,\"passed\":true}]}\n"
+  },
+  "nodeLogs": {
+    "base": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> @llm-dev-ops/benchmark-exchange@0.1.0 test\n> npm test --prefix functions/agents\n\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> benchmark-exchange-agents@0.1.0 test\n> node test.js\n\nbenchmark-exchange-agents Cloud Function Tests\n\n  PASS  GET /health returns 200 with agent list\n  PASS  GET /health includes execution_metadata\n  PASS  GET /health includes layers_executed\n  PASS  GET /health includes agent_identity\n  PASS  OPTIONS returns 204 with CORS headers\n  PASS  CORS headers set for an explicitly allowed origin\n  PASS  CORS does not reflect an unconfigured origin\n  PASS  execution_metadata.trace_id uses x-correlation-id when provided\n  PASS  invalid correlation IDs are replaced\n  PASS  POST /v1/benchmark-exchange/publish returns 400 on empty body\n  PASS  POST /v1/benchmark-exchange/publish validates methodology fields\n  PASS  POST /v1/benchmark-exchange/publish rejects non-object bodies and nested contracts\n  PASS  POST /v1/benchmark-exchange/publish rejects unsafe numeric values\n  PASS  POST /v1/benchmark-exchange/publish returns 201 on valid request\n  PASS  Successful publish includes execution_metadata and layers_executed\n  PASS  Successful publish includes decision_event with agent_identity\n  PASS  Unknown route returns 404 with available_routes\n  PASS  Validation failure includes execution_metadata and layers\n\nResults: 18 passed, 0 failed, 18 total\n",
+    "exact": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> @llm-dev-ops/benchmark-exchange@0.1.0 test\n> npm test --prefix functions/agents\n\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> benchmark-exchange-agents@0.1.0 test\n> node test.js && node metric-probe.cjs ../..\n\nbenchmark-exchange-agents Cloud Function Tests\n\n  PASS  GET /health returns 200 with agent list\n  PASS  GET /health includes execution_metadata\n  PASS  GET /health includes layers_executed\n  PASS  GET /health includes agent_identity\n  PASS  OPTIONS returns 204 with CORS headers\n  PASS  CORS headers set for an explicitly allowed origin\n  PASS  CORS does not reflect an unconfigured origin\n  PASS  execution_metadata.trace_id uses x-correlation-id when provided\n  PASS  invalid correlation IDs are replaced\n  PASS  POST /v1/benchmark-exchange/publish returns 400 on empty body\n  PASS  POST /v1/benchmark-exchange/publish validates methodology fields\n  PASS  POST /v1/benchmark-exchange/publish rejects non-object bodies and nested contracts\n  PASS  POST /v1/benchmark-exchange/publish rejects unsafe numeric values\n  PASS  POST /v1/benchmark-exchange/publish returns 201 on valid request\n  PASS  Successful publish includes execution_metadata and layers_executed\n  PASS  Successful publish includes decision_event with agent_identity\n  PASS  Unknown route returns 404 with available_routes\n  PASS  Validation failure includes execution_metadata and layers\n\nResults: 18 passed, 0 failed, 18 total\n{\"holdout\":[{\"name\":\"invalid-metric-0\",\"status\":400,\"passed\":true},{\"name\":\"invalid-metric-1\",\"status\":400,\"passed\":true},{\"name\":\"invalid-metric-2\",\"status\":400,\"passed\":true},{\"name\":\"invalid-metric-3\",\"status\":400,\"passed\":true},{\"name\":\"invalid-metric-4\",\"status\":400,\"passed\":true},{\"name\":\"invalid-metric-5\",\"status\":400,\"passed\":true},{\"name\":\"invalid-metric-6\",\"status\":400,\"passed\":true},{\"name\":\"overflow\",\"status\":400,\"passed\":true}],\"anchors\":[{\"name\":\"zero\",\"status\":201,\"passed\":true},{\"name\":\"normal\",\"status\":201,\"passed\":true},{\"name\":\"signed\",\"status\":201,\"passed\":true},{\"name\":\"latency\",\"status\":201,\"passed\":true},{\"name\":\"empty\",\"status\":201,\"passed\":true}]}\n"
+  },
+  "root": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 6,
+      "high": 7,
+      "critical": 2,
+      "total": 15
+    },
+    "dependencies": {
+      "prod": 336,
+      "dev": 0,
+      "optional": 2,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 337
+    }
+  },
+  "function": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "dependencies": {
+      "prod": 1,
+      "dev": 0,
+      "optional": 0,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 0
+    }
+  },
+  "production": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 6,
+      "high": 7,
+      "critical": 2,
+      "total": 15
+    },
+    "dependencies": {
+      "prod": 336,
+      "dev": 0,
+      "optional": 2,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 337
+    }
+  }
+}

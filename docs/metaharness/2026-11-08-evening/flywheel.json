@@ -1,0 +1,944 @@
+{
+  "trials": [
+    {
+      "i": 0,
+      "root": "/tmp/bench8-base",
+      "report": {
+        "holdout": [
+          {
+            "name": "invalid-metric-0",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-1",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-2",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-3",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-4",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-5",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-6",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "overflow",
+            "status": 201,
+            "passed": false
+          }
+        ],
+        "anchors": [
+          {
+            "name": "zero",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "normal",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "signed",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "latency",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "empty",
+            "status": 201,
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "i": 0,
+      "root": "/tmp/bench8-exact",
+      "report": {
+        "holdout": [
+          {
+            "name": "invalid-metric-0",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-1",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-2",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-3",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-4",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-5",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-6",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "overflow",
+            "status": 400,
+            "passed": true
+          }
+        ],
+        "anchors": [
+          {
+            "name": "zero",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "normal",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "signed",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "latency",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "empty",
+            "status": 201,
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "i": 1,
+      "root": "/tmp/bench8-exact",
+      "report": {
+        "holdout": [
+          {
+            "name": "invalid-metric-0",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-1",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-2",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-3",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-4",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-5",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-6",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "overflow",
+            "status": 400,
+            "passed": true
+          }
+        ],
+        "anchors": [
+          {
+            "name": "zero",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "normal",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "signed",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "latency",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "empty",
+            "status": 201,
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "i": 1,
+      "root": "/tmp/bench8-base",
+      "report": {
+        "holdout": [
+          {
+            "name": "invalid-metric-0",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-1",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-2",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-3",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-4",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-5",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-6",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "overflow",
+            "status": 201,
+            "passed": false
+          }
+        ],
+        "anchors": [
+          {
+            "name": "zero",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "normal",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "signed",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "latency",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "empty",
+            "status": 201,
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "i": 2,
+      "root": "/tmp/bench8-base",
+      "report": {
+        "holdout": [
+          {
+            "name": "invalid-metric-0",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-1",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-2",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-3",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-4",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-5",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-6",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "overflow",
+            "status": 201,
+            "passed": false
+          }
+        ],
+        "anchors": [
+          {
+            "name": "zero",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "normal",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "signed",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "latency",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "empty",
+            "status": 201,
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "i": 2,
+      "root": "/tmp/bench8-exact",
+      "report": {
+        "holdout": [
+          {
+            "name": "invalid-metric-0",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-1",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-2",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-3",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-4",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-5",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-6",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "overflow",
+            "status": 400,
+            "passed": true
+          }
+        ],
+        "anchors": [
+          {
+            "name": "zero",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "normal",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "signed",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "latency",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "empty",
+            "status": 201,
+            "passed": true
+          }
+        ]
+      }
+    }
+  ],
+  "measurements": [
+    {
+      "root": "/tmp/bench8-base",
+      "suite": "holdout",
+      "report": {
+        "holdout": [
+          {
+            "name": "invalid-metric-0",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-1",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-2",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-3",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-4",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-5",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-6",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "overflow",
+            "status": 201,
+            "passed": false
+          }
+        ],
+        "anchors": [
+          {
+            "name": "zero",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "normal",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "signed",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "latency",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "empty",
+            "status": 201,
+            "passed": true
+          }
+        ]
+      },
+      "score": {
+        "primary": 0,
+        "itemWins": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "noopRate": 0,
+        "costPerWin": 0,
+        "regressed": true
+      }
+    },
+    {
+      "root": "/tmp/bench8-base",
+      "suite": "anchors",
+      "report": {
+        "holdout": [
+          {
+            "name": "invalid-metric-0",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-1",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-2",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-3",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-4",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-5",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "invalid-metric-6",
+            "status": 201,
+            "passed": false
+          },
+          {
+            "name": "overflow",
+            "status": 201,
+            "passed": false
+          }
+        ],
+        "anchors": [
+          {
+            "name": "zero",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "normal",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "signed",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "latency",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "empty",
+            "status": 201,
+            "passed": true
+          }
+        ]
+      },
+      "score": {
+        "primary": 1,
+        "itemWins": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "noopRate": 0,
+        "costPerWin": 0,
+        "regressed": true
+      }
+    },
+    {
+      "root": "/tmp/bench8-exact",
+      "suite": "holdout",
+      "report": {
+        "holdout": [
+          {
+            "name": "invalid-metric-0",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-1",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-2",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-3",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-4",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-5",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "invalid-metric-6",
+            "status": 400,
+            "passed": true
+          },
+          {
+            "name": "overflow",
+            "status": 400,
+            "passed": true
+          }
+        ],
+        "anchors": [
+          {
+            "name": "zero",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "normal",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "signed",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "latency",
+            "status": 201,
+            "passed": true
+          },
+          {
+            "name": "empty",
+            "status": 201,
+            "passed": true
+          }
+        ]
+      },
+      "score": {
+        "primary": 1,
+        "itemWins": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "noopRate": 0,
+        "costPerWin": 0,
+        "regressed": true
+      }
+    }
+  ],
+  "result": {
+    "liftCurve": [
+      {
+        "generation": 0,
+        "primary": 0,
+        "delta": 0,
+        "anchor": 1
+      }
+    ],
+    "promotions": [],
+    "lineage": {
+      "commits": {}
+    },
+    "replayBundle": {
+      "data_source": "LIVE_NATIVE_HTTP_EXPORTED_HANDLER",
+      "root_id": "root",
+      "chain": [
+        {
+          "id": "root",
+          "generation": 0,
+          "parents": [],
+          "mutation": null,
+          "primaryDelta": 0,
+          "anchorScore": 1,
+          "verdict": "ROOT",
+          "failureReasons": [],
+          "receipt": {
+            "payload": {
+              "kind": "root",
+              "root": "root"
+            },
+            "signature": "op6zQCrEgo7Jz2leLn+CIBgBeOF/yWiCGp1b6MPtFDlGngfc1eDStG0K/jY1Dbn42bWWuhk46sFE4lyL/bpWAw==",
+            "publicKey": "MCowBQYDK2VwAyEA5Au1dD5UAmFlTuvc5Zmih0kmlZsiAYssyXJy1vSgHUY=",
+            "alg": "ed25519"
+          },
+          "createdAt": "gen-0"
+        }
+      ],
+      "all_commits": [
+        {
+          "id": "root__revision_gen1",
+          "generation": 1,
+          "parents": [
+            "root"
+          ],
+          "mutation": {
+            "target": "revision",
+            "summary": "Validate finite numeric metric entries",
+            "inverse": [
+              {
+                "path": "functions/agents/index.js",
+                "parentBytes": "'use strict';\n\nconst crypto = require('crypto');\n\n// =============================================================================\n// Cloud Function: benchmark-exchange-agents\n// Runtime: Node.js 20 | Entry point: handler\n// =============================================================================\n\nconst SERVICE_NAME = 'benchmark-exchange-agents';\nconst AGENTS = ['publish'];\n\n// =============================================================================\n// Contract Schemas\n// =============================================================================\n\nconst PUBLISH_REQUIRED_FIELDS = [\n  'benchmark_id',\n  'model_provider',\n  'model_name',\n  'model_version',\n  'aggregate_score',\n  'metric_scores',\n  'methodology',\n  'dataset',\n  'sample_size',\n  'variance',\n  'reproduction_count',\n];\n\nconst METHODOLOGY_REQUIRED_FIELDS = [\n  'framework',\n  'evaluation_method',\n  'scoring_method',\n];\n\nconst DATASET_REQUIRED_FIELDS = [\n  'dataset_id',\n  'dataset_version',\n  'example_count',\n  'split',\n];\n\nfunction isPlainObject(value) {\n  return value !== null && typeof value === 'object' && !Array.isArray(value);\n}\n\nfunction isFiniteNumber(value) {\n  return typeof value === 'number' && Number.isFinite(value);\n}\n\nfunction isPositiveInteger(value, maximum = Number.MAX_SAFE_INTEGER) {\n  return Number.isSafeInteger(value) && value > 0 && value <= maximum;\n}\n\nfunction validatePublishRequest(body) {\n  const errors = [];\n\n  if (!isPlainObject(body)) {\n    return [{ field: 'body', message: 'body must be a JSON object' }];\n  }\n\n  for (const field of PUBLISH_REQUIRED_FIELDS) {\n    if (body[field] === undefined || body[field] === null) {\n      errors.push({ field, message: `${field} is required` });\n    }\n  }\n\n  if (body.methodology !== undefined && !isPlainObject(body.methodology)) {\n    errors.push({ field: 'methodology', message: 'methodology must be a JSON object' });\n  } else if (body.methodology) {\n    for (const field of METHODOLOGY_REQUIRED_FIELDS) {\n      if (typeof body.methodology[field] !== 'string' || body.methodology[field].trim() === '') {\n        errors.push({ field: `methodology.${field}`, message: `methodology.${field} is required` });\n      }\n    }\n  }\n\n  if (body.dataset !== undefined && !isPlainObject(body.dataset)) {\n    errors.push({ field: 'dataset', message: 'dataset must be a JSON object' });\n  } else if (body.dataset) {\n    for (const field of DATASET_REQUIRED_FIELDS) {\n      if (body.dataset[field] === undefined || body.dataset[field] === null) {\n        errors.push({ field: `dataset.${field}`, message: `dataset.${field} is required` });\n      }\n    }\n    if (!isPositiveInteger(body.dataset.example_count, 100_000_000)) {\n      errors.push({ field: 'dataset.example_count', message: 'dataset.example_count must be a positive bounded integer' });\n    }\n  }\n\n  if (body.metric_scores !== undefined && !isPlainObject(body.metric_scores)) {\n    errors.push({ field: 'metric_scores', message: 'metric_scores must be a JSON object' });\n  }\n\n  if (body.aggregate_score !== undefined && (!isFiniteNumber(body.aggregate_score) || body.aggregate_score < 0 || body.aggregate_score > 1)) {\n    errors.push({ field: 'aggregate_score', message: 'aggregate_score must be a finite number from 0 to 1' });\n  }\n\n  if (body.sample_size !== undefined && !isPositiveInteger(body.sample_size, 100_000_000)) {\n    errors.push({ field: 'sample_size', message: 'sample_size must be a positive bounded integer' });\n  }\n\n  if (body.variance !== undefined && (!isFiniteNumber(body.variance) || body.variance < 0)) {\n    errors.push({ field: 'variance', message: 'variance must be a finite non-negative number' });\n  }\n\n  if (body.reproduction_count !== undefined && !isPositiveInteger(body.reproduction_count, 10_000)) {\n    errors.push({ field: 'reproduction_count', message: 'reproduction_count must be a positive bounded integer' });\n  }\n\n  return errors;\n}\n\n// =============================================================================\n// CORS\n// =============================================================================\n\nconst ALLOWED_ORIGINS = (process.env.CORS_ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);\nconst ALLOWED_METHODS = 'GET, POST, PUT, OPTIONS';\nconst ALLOWED_HEADERS = 'Content-Type, Authorization, X-Correlation-Id, X-Request-Id';\n\nfunction setCorsHeaders(req, res) {\n  const origin = req.headers['origin'];\n  if (ALLOWED_ORIGINS.includes('*')) {\n    res.set('Access-Control-Allow-Origin', '*');\n  } else if (origin && ALLOWED_ORIGINS.includes(origin)) {\n    res.set('Access-Control-Allow-Origin', origin);\n    res.set('Vary', 'Origin');\n  }\n  res.set('Access-Control-Allow-Methods', ALLOWED_METHODS);\n  res.set('Access-Control-Allow-Headers', ALLOWED_HEADERS);\n  res.set('Access-Control-Max-Age', '86400');\n}\n\n// =============================================================================\n// Execution Metadata Builder\n// =============================================================================\n\nfunction validCorrelationId(value) {\n  return typeof value === 'string' && value.length > 0 && value.length <= 128 && /^[\\x20-\\x7E]+$/.test(value);\n}\n\nfunction buildExecutionMetadata(req) {\n  const suppliedCorrelationId = req.headers['x-correlation-id'];\n  return {\n    trace_id: validCorrelationId(suppliedCorrelationId) ? suppliedCorrelationId : crypto.randomUUID(),\n    timestamp: new Date().toISOString(),\n    service: SERVICE_NAME,\n    execution_id: crypto.randomUUID(),\n  };\n}\n\nfunction buildResponse(executionMetadata, data, layers) {\n  return {\n    ...data,\n    execution_metadata: executionMetadata,\n    layers_executed: layers,\n  };\n}\n\n// =============================================================================\n// Agent Route: POST /v1/benchmark-exchange/publish\n// =============================================================================\n\nfunction handlePublish(req, executionMetadata) {\n  const start = Date.now();\n  const layers = [\n    { layer: 'AGENT_ROUTING', status: 'completed' },\n  ];\n\n  const body = req.body || {};\n  const validationErrors = validatePublishRequest(body);\n\n  if (validationErrors.length > 0) {\n    layers.push({\n      layer: 'BENCHMARK_EXCHANGE_PUBLISH',\n      status: 'validation_failed',\n      duration_ms: Date.now() - start,\n    });\n    return {\n      statusCode: 400,\n      body: buildResponse(executionMetadata, {\n        success: false,\n        error: {\n          code: 'VALIDATION_ERROR',\n          message: 'Request validation failed',\n          details: validationErrors,\n        },\n      }, layers),\n    };\n  }\n\n  const publicationId = crypto.randomUUID();\n  const now = new Date().toISOString();\n\n  const publication = {\n    id: publicationId,\n    benchmark_id: body.benchmark_id,\n    submission_id: body.submission_id || null,\n    status: 'draft',\n    version: '1.0.0',\n    model_provider: body.model_provider,\n    model_name: body.model_name,\n    model_version: body.model_version,\n    aggregate_score: body.aggregate_score,\n    normalized_score: body.aggregate_score,\n    confidence_level: classifyConfidence(body),\n    reproducibility_score: computeReproducibility(body),\n    published_by: req.headers['x-user-id'] || 'anonymous',\n    organization_id: req.headers['x-organization-id'] || null,\n    tags: body.tags || [],\n    is_latest: true,\n    created_at: now,\n    updated_at: now,\n    published_at: null,\n  };\n\n  const decisionEvent = {\n    agent_id: 'benchmark-publication-agent',\n    agent_version: '1.0.0',\n    agent_identity: {\n      source_agent: 'benchmark-publication-agent',\n      domain: 'benchmark',\n      phase: 'phase7',\n      layer: 'layer2',\n      agent_version: '1.0.0',\n    },\n    decision_type: 'benchmark_publish',\n    inputs_hash: crypto.createHash('sha256').update(JSON.stringify(body)).digest('hex'),\n    outputs: {\n      publication_id: publicationId,\n      status: 'success',\n    },\n    confidence: {\n      reproducibility_score: publication.reproducibility_score,\n      sample_size: body.sample_size,\n      variance: body.variance,\n      reproduction_count: body.reproduction_count,\n    },\n    execution_ref: executionMetadata.trace_id,\n    timestamp: now,\n  };\n\n  layers.push({\n    layer: 'BENCHMARK_EXCHANGE_PUBLISH',\n    status: 'completed',\n    duration_ms: Date.now() - start,\n  });\n\n  return {\n    statusCode: 201,\n    body: buildResponse(executionMetadata, {\n      success: true,\n      data: {\n        publication,\n        decision_event: decisionEvent,\n      },\n    }, layers),\n  };\n}\n\nfunction classifyConfidence(body) {\n  const score = computeReproducibility(body);\n  if (score >= 0.95) return 'very_high';\n  if (score >= 0.85) return 'high';\n  if (score >= 0.70) return 'medium';\n  if (score >= 0.50) return 'low';\n  return 'very_low';\n}\n\nfunction computeReproducibility(body) {\n  const sampleWeight = Math.min(body.sample_size / 1000, 1.0) * 0.3;\n  const varianceWeight = Math.max(1.0 - body.variance, 0.0) * 0.4;\n  const reproWeight = Math.min(body.reproduction_count / 5, 1.0) * 0.3;\n  return Math.min(sampleWeight + varianceWeight + reproWeight, 1.0);\n}\n\n// =============================================================================\n// Health Endpoint\n// =============================================================================\n\nfunction handleHealth(executionMetadata) {\n  const layers = [\n    { layer: 'AGENT_ROUTING', status: 'completed' },\n  ];\n\n  return {\n    statusCode: 200,\n    body: buildResponse(executionMetadata, {\n      status: 'healthy',\n      service: SERVICE_NAME,\n      agents: AGENTS,\n      version: '1.0.0',\n      agent_identity: {\n        source_agent: 'benchmark-publication-agent',\n        domain: 'benchmark',\n        phase: 'phase7',\n        layer: 'layer2',\n        agent_version: '1.0.0',\n      },\n    }, layers),\n  };\n}\n\n// =============================================================================\n// Cloud Function Entry Point\n// =============================================================================\n\n/**\n * HTTP Cloud Function entry point.\n *\n * @param {import('express').Request} req\n * @param {import('express').Response} res\n */\nfunction handler(req, res) {\n  setCorsHeaders(req, res);\n\n  if (req.method === 'OPTIONS') {\n    res.status(204).send('');\n    return;\n  }\n\n  const executionMetadata = buildExecutionMetadata(req);\n  const path = req.path.replace(/\\/+$/, '') || '/';\n\n  let result;\n\n  switch (true) {\n    case path === '/health' && req.method === 'GET':\n      result = handleHealth(executionMetadata);\n      break;\n\n    case path === '/v1/benchmark-exchange/publish' && req.method === 'POST':\n      result = handlePublish(req, executionMetadata);\n      break;\n\n    default:\n      result = {\n        statusCode: 404,\n        body: buildResponse(executionMetadata, {\n          success: false,\n          error: {\n            code: 'NOT_FOUND',\n            message: `Route ${req.method} ${path} not found`,\n            available_routes: [\n              'GET  /health',\n              'POST /v1/benchmark-exchange/publish',\n            ],\n          },\n        }, [\n          { layer: 'AGENT_ROUTING', status: 'not_found' },\n        ]),\n      };\n      break;\n  }\n\n  res.status(result.statusCode).json(result.body);\n}\n\nmodule.exports = { handler };\n",
+                "sha256": "056cfd77d5c8994c9aeb756cfd11946fb164ed814e5f63af81fb9b2e556f9b4b"
+              },
+              {
+                "path": "functions/agents/package.json",
+                "parentBytes": "{\n  \"name\": \"benchmark-exchange-agents\",\n  \"version\": \"0.1.0\",\n  \"description\": \"Cloud Function deploy manifest for the benchmark-exchange agents handler\",\n  \"private\": true,\n  \"main\": \"index.js\",\n  \"scripts\": {\n    \"start\": \"node index.js\",\n    \"test\": \"node test.js\"\n  },\n  \"engines\": {\n    \"node\": \">=20.0.0\"\n  },\n  \"dependencies\": {},\n  \"license\": \"MIT\"\n}\n",
+                "sha256": "82ba56bc2c294172364aa74ac2a40493649eb8f78f974dee70fcdd054194bbc8"
+              }
+            ]
+          },
+          "primaryDelta": 1,
+          "anchorScore": null,
+          "verdict": "REJECTED",
+          "failureReasons": [
+            "safety_regressed"
+          ],
+          "receipt": {
+            "payload": {
+              "kind": "candidate",
+              "id": "root__revision_gen1",
+              "target": "revision",
+              "verdict": "REJECTED",
+              "primaryDelta": 1,
+              "baselineScore": {
+                "primary": 0,
+                "itemWins": [
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false
+                ],
+                "noopRate": 0,
+                "costPerWin": 0,
+                "regressed": true
+              },
+              "candidateScore": {
+                "primary": 1,
+                "itemWins": [
+                  true,
+                  true,
+                  true,
+                  true,
+                  true,
+                  true,
+                  true,
+                  true
+                ],
+                "noopRate": 0,
+                "costPerWin": 0,
+                "regressed": true
+              },
+              "anchorScore": null,
+              "failureReasons": [
+                "safety_regressed"
+              ],
+              "parents": [
+                "root"
+              ],
+              "generation": 1
+            },
+            "signature": "KEODRnu0D9116oKoFNx+GYlknjDAPmJbS1pgTsO6h1KE2ui5xoxcQ5v4RHDB2G7NXM6RBlPKUtbouHICNhF3BA==",
+            "publicKey": "MCowBQYDK2VwAyEA5Au1dD5UAmFlTuvc5Zmih0kmlZsiAYssyXJy1vSgHUY=",
+            "alg": "ed25519"
+          },
+          "createdAt": "gen-1",
+          "baselineScore": {
+            "primary": 0,
+            "itemWins": [
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "noopRate": 0,
+            "costPerWin": 0,
+            "regressed": true
+          },
+          "candidateScore": {
+            "primary": 1,
+            "itemWins": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "noopRate": 0,
+            "costPerWin": 0,
+            "regressed": true
+          }
+        }
+      ],
+      "lift_curve": [
+        {
+          "generation": 0,
+          "primary": 0,
+          "delta": 0,
+          "anchor": 1
+        }
+      ],
+      "gate_fingerprint": "c5942e7c9bf8f28fe7af47a6ec3887d11eeb3f8c8e8601cc6a7a54969ea0b981",
+      "verified_improvements": 0,
+      "anchor_surviving_improvements": 0,
+      "milestone_reached": false,
+      "created_at": "gen-1"
+    },
+    "generationsRun": 1,
+    "milestoneReached": false,
+    "finalPolicy": {
+      "revision": "056cfd77d5c8994c9aeb756cfd11946fb164ed814e5f63af81fb9b2e556f9b4b"
+    }
+  },
+  "replay": {
+    "pass": true,
+    "checks": {
+      "receipts": true,
+      "reachesRoot": true,
+      "contiguousParents": true,
+      "allPromoted": true,
+      "gateUnchanged": true,
+      "gateReExecutes": true,
+      "allCommitsReceipts": true,
+      "sealedFieldsAuthentic": true
+    },
+    "failures": [],
+    "chainSummary": "gen0(root)"
+  },
+  "fingerprint": "c5942e7c9bf8f28fe7af47a6ec3887d11eeb3f8c8e8601cc6a7a54969ea0b981",
+  "inverse": [
+    {
+      "path": "functions/agents/index.js",
+      "parentBytes": "'use strict';\n\nconst crypto = require('crypto');\n\n// =============================================================================\n// Cloud Function: benchmark-exchange-agents\n// Runtime: Node.js 20 | Entry point: handler\n// =============================================================================\n\nconst SERVICE_NAME = 'benchmark-exchange-agents';\nconst AGENTS = ['publish'];\n\n// =============================================================================\n// Contract Schemas\n// =============================================================================\n\nconst PUBLISH_REQUIRED_FIELDS = [\n  'benchmark_id',\n  'model_provider',\n  'model_name',\n  'model_version',\n  'aggregate_score',\n  'metric_scores',\n  'methodology',\n  'dataset',\n  'sample_size',\n  'variance',\n  'reproduction_count',\n];\n\nconst METHODOLOGY_REQUIRED_FIELDS = [\n  'framework',\n  'evaluation_method',\n  'scoring_method',\n];\n\nconst DATASET_REQUIRED_FIELDS = [\n  'dataset_id',\n  'dataset_version',\n  'example_count',\n  'split',\n];\n\nfunction isPlainObject(value) {\n  return value !== null && typeof value === 'object' && !Array.isArray(value);\n}\n\nfunction isFiniteNumber(value) {\n  return typeof value === 'number' && Number.isFinite(value);\n}\n\nfunction isPositiveInteger(value, maximum = Number.MAX_SAFE_INTEGER) {\n  return Number.isSafeInteger(value) && value > 0 && value <= maximum;\n}\n\nfunction validatePublishRequest(body) {\n  const errors = [];\n\n  if (!isPlainObject(body)) {\n    return [{ field: 'body', message: 'body must be a JSON object' }];\n  }\n\n  for (const field of PUBLISH_REQUIRED_FIELDS) {\n    if (body[field] === undefined || body[field] === null) {\n      errors.push({ field, message: `${field} is required` });\n    }\n  }\n\n  if (body.methodology !== undefined && !isPlainObject(body.methodology)) {\n    errors.push({ field: 'methodology', message: 'methodology must be a JSON object' });\n  } else if (body.methodology) {\n    for (const field of METHODOLOGY_REQUIRED_FIELDS) {\n      if (typeof body.methodology[field] !== 'string' || body.methodology[field].trim() === '') {\n        errors.push({ field: `methodology.${field}`, message: `methodology.${field} is required` });\n      }\n    }\n  }\n\n  if (body.dataset !== undefined && !isPlainObject(body.dataset)) {\n    errors.push({ field: 'dataset', message: 'dataset must be a JSON object' });\n  } else if (body.dataset) {\n    for (const field of DATASET_REQUIRED_FIELDS) {\n      if (body.dataset[field] === undefined || body.dataset[field] === null) {\n        errors.push({ field: `dataset.${field}`, message: `dataset.${field} is required` });\n      }\n    }\n    if (!isPositiveInteger(body.dataset.example_count, 100_000_000)) {\n      errors.push({ field: 'dataset.example_count', message: 'dataset.example_count must be a positive bounded integer' });\n    }\n  }\n\n  if (body.metric_scores !== undefined && !isPlainObject(body.metric_scores)) {\n    errors.push({ field: 'metric_scores', message: 'metric_scores must be a JSON object' });\n  }\n\n  if (body.aggregate_score !== undefined && (!isFiniteNumber(body.aggregate_score) || body.aggregate_score < 0 || body.aggregate_score > 1)) {\n    errors.push({ field: 'aggregate_score', message: 'aggregate_score must be a finite number from 0 to 1' });\n  }\n\n  if (body.sample_size !== undefined && !isPositiveInteger(body.sample_size, 100_000_000)) {\n    errors.push({ field: 'sample_size', message: 'sample_size must be a positive bounded integer' });\n  }\n\n  if (body.variance !== undefined && (!isFiniteNumber(body.variance) || body.variance < 0)) {\n    errors.push({ field: 'variance', message: 'variance must be a finite non-negative number' });\n  }\n\n  if (body.reproduction_count !== undefined && !isPositiveInteger(body.reproduction_count, 10_000)) {\n    errors.push({ field: 'reproduction_count', message: 'reproduction_count must be a positive bounded integer' });\n  }\n\n  return errors;\n}\n\n// =============================================================================\n// CORS\n// =============================================================================\n\nconst ALLOWED_ORIGINS = (process.env.CORS_ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);\nconst ALLOWED_METHODS = 'GET, POST, PUT, OPTIONS';\nconst ALLOWED_HEADERS = 'Content-Type, Authorization, X-Correlation-Id, X-Request-Id';\n\nfunction setCorsHeaders(req, res) {\n  const origin = req.headers['origin'];\n  if (ALLOWED_ORIGINS.includes('*')) {\n    res.set('Access-Control-Allow-Origin', '*');\n  } else if (origin && ALLOWED_ORIGINS.includes(origin)) {\n    res.set('Access-Control-Allow-Origin', origin);\n    res.set('Vary', 'Origin');\n  }\n  res.set('Access-Control-Allow-Methods', ALLOWED_METHODS);\n  res.set('Access-Control-Allow-Headers', ALLOWED_HEADERS);\n  res.set('Access-Control-Max-Age', '86400');\n}\n\n// =============================================================================\n// Execution Metadata Builder\n// =============================================================================\n\nfunction validCorrelationId(value) {\n  return typeof value === 'string' && value.length > 0 && value.length <= 128 && /^[\\x20-\\x7E]+$/.test(value);\n}\n\nfunction buildExecutionMetadata(req) {\n  const suppliedCorrelationId = req.headers['x-correlation-id'];\n  return {\n    trace_id: validCorrelationId(suppliedCorrelationId) ? suppliedCorrelationId : crypto.randomUUID(),\n    timestamp: new Date().toISOString(),\n    service: SERVICE_NAME,\n    execution_id: crypto.randomUUID(),\n  };\n}\n\nfunction buildResponse(executionMetadata, data, layers) {\n  return {\n    ...data,\n    execution_metadata: executionMetadata,\n    layers_executed: layers,\n  };\n}\n\n// =============================================================================\n// Agent Route: POST /v1/benchmark-exchange/publish\n// =============================================================================\n\nfunction handlePublish(req, executionMetadata) {\n  const start = Date.now();\n  const layers = [\n    { layer: 'AGENT_ROUTING', status: 'completed' },\n  ];\n\n  const body = req.body || {};\n  const validationErrors = validatePublishRequest(body);\n\n  if (validationErrors.length > 0) {\n    layers.push({\n      layer: 'BENCHMARK_EXCHANGE_PUBLISH',\n      status: 'validation_failed',\n      duration_ms: Date.now() - start,\n    });\n    return {\n      statusCode: 400,\n      body: buildResponse(executionMetadata, {\n        success: false,\n        error: {\n          code: 'VALIDATION_ERROR',\n          message: 'Request validation failed',\n          details: validationErrors,\n        },\n      }, layers),\n    };\n  }\n\n  const publicationId = crypto.randomUUID();\n  const now = new Date().toISOString();\n\n  const publication = {\n    id: publicationId,\n    benchmark_id: body.benchmark_id,\n    submission_id: body.submission_id || null,\n    status: 'draft',\n    version: '1.0.0',\n    model_provider: body.model_provider,\n    model_name: body.model_name,\n    model_version: body.model_version,\n    aggregate_score: body.aggregate_score,\n    normalized_score: body.aggregate_score,\n    confidence_level: classifyConfidence(body),\n    reproducibility_score: computeReproducibility(body),\n    published_by: req.headers['x-user-id'] || 'anonymous',\n    organization_id: req.headers['x-organization-id'] || null,\n    tags: body.tags || [],\n    is_latest: true,\n    created_at: now,\n    updated_at: now,\n    published_at: null,\n  };\n\n  const decisionEvent = {\n    agent_id: 'benchmark-publication-agent',\n    agent_version: '1.0.0',\n    agent_identity: {\n      source_agent: 'benchmark-publication-agent',\n      domain: 'benchmark',\n      phase: 'phase7',\n      layer: 'layer2',\n      agent_version: '1.0.0',\n    },\n    decision_type: 'benchmark_publish',\n    inputs_hash: crypto.createHash('sha256').update(JSON.stringify(body)).digest('hex'),\n    outputs: {\n      publication_id: publicationId,\n      status: 'success',\n    },\n    confidence: {\n      reproducibility_score: publication.reproducibility_score,\n      sample_size: body.sample_size,\n      variance: body.variance,\n      reproduction_count: body.reproduction_count,\n    },\n    execution_ref: executionMetadata.trace_id,\n    timestamp: now,\n  };\n\n  layers.push({\n    layer: 'BENCHMARK_EXCHANGE_PUBLISH',\n    status: 'completed',\n    duration_ms: Date.now() - start,\n  });\n\n  return {\n    statusCode: 201,\n    body: buildResponse(executionMetadata, {\n      success: true,\n      data: {\n        publication,\n        decision_event: decisionEvent,\n      },\n    }, layers),\n  };\n}\n\nfunction classifyConfidence(body) {\n  const score = computeReproducibility(body);\n  if (score >= 0.95) return 'very_high';\n  if (score >= 0.85) return 'high';\n  if (score >= 0.70) return 'medium';\n  if (score >= 0.50) return 'low';\n  return 'very_low';\n}\n\nfunction computeReproducibility(body) {\n  const sampleWeight = Math.min(body.sample_size / 1000, 1.0) * 0.3;\n  const varianceWeight = Math.max(1.0 - body.variance, 0.0) * 0.4;\n  const reproWeight = Math.min(body.reproduction_count / 5, 1.0) * 0.3;\n  return Math.min(sampleWeight + varianceWeight + reproWeight, 1.0);\n}\n\n// =============================================================================\n// Health Endpoint\n// =============================================================================\n\nfunction handleHealth(executionMetadata) {\n  const layers = [\n    { layer: 'AGENT_ROUTING', status: 'completed' },\n  ];\n\n  return {\n    statusCode: 200,\n    body: buildResponse(executionMetadata, {\n      status: 'healthy',\n      service: SERVICE_NAME,\n      agents: AGENTS,\n      version: '1.0.0',\n      agent_identity: {\n        source_agent: 'benchmark-publication-agent',\n        domain: 'benchmark',\n        phase: 'phase7',\n        layer: 'layer2',\n        agent_version: '1.0.0',\n      },\n    }, layers),\n  };\n}\n\n// =============================================================================\n// Cloud Function Entry Point\n// =============================================================================\n\n/**\n * HTTP Cloud Function entry point.\n *\n * @param {import('express').Request} req\n * @param {import('express').Response} res\n */\nfunction handler(req, res) {\n  setCorsHeaders(req, res);\n\n  if (req.method === 'OPTIONS') {\n    res.status(204).send('');\n    return;\n  }\n\n  const executionMetadata = buildExecutionMetadata(req);\n  const path = req.path.replace(/\\/+$/, '') || '/';\n\n  let result;\n\n  switch (true) {\n    case path === '/health' && req.method === 'GET':\n      result = handleHealth(executionMetadata);\n      break;\n\n    case path === '/v1/benchmark-exchange/publish' && req.method === 'POST':\n      result = handlePublish(req, executionMetadata);\n      break;\n\n    default:\n      result = {\n        statusCode: 404,\n        body: buildResponse(executionMetadata, {\n          success: false,\n          error: {\n            code: 'NOT_FOUND',\n            message: `Route ${req.method} ${path} not found`,\n            available_routes: [\n              'GET  /health',\n              'POST /v1/benchmark-exchange/publish',\n            ],\n          },\n        }, [\n          { layer: 'AGENT_ROUTING', status: 'not_found' },\n        ]),\n      };\n      break;\n  }\n\n  res.status(result.statusCode).json(result.body);\n}\n\nmodule.exports = { handler };\n",
+      "sha256": "056cfd77d5c8994c9aeb756cfd11946fb164ed814e5f63af81fb9b2e556f9b4b"
+    },
+    {
+      "path": "functions/agents/package.json",
+      "parentBytes": "{\n  \"name\": \"benchmark-exchange-agents\",\n  \"version\": \"0.1.0\",\n  \"description\": \"Cloud Function deploy manifest for the benchmark-exchange agents handler\",\n  \"private\": true,\n  \"main\": \"index.js\",\n  \"scripts\": {\n    \"start\": \"node index.js\",\n    \"test\": \"node test.js\"\n  },\n  \"engines\": {\n    \"node\": \">=20.0.0\"\n  },\n  \"dependencies\": {},\n  \"license\": \"MIT\"\n}\n",
+      "sha256": "82ba56bc2c294172364aa74ac2a40493649eb8f78f974dee70fcdd054194bbc8"
+    }
+  ],
+  "contract": {
+    "baseline": "3fe6e55248a66bf7200da417936a22e0e8604f95",
+    "acceptance": "Reject eight malformed metric entries with400 VALIDATION_ERROR and metric-specific detail; retain five valid metric/publication anchors and18originaltests. All repository/security/Ruflo/Flywheel/CI gates required to merge.",
+    "trials": 3,
+    "holdout": "null/scalar/array/missing value/string/bool/null numeric/JSON1e400 overflow",
+    "anchor": "zero,normal,negative,latency>1,empty metric map",
+    "bounds": {
+      "generations": 1,
+      "children": 1,
+      "concurrency": 1,
+      "risk_budget": 0
+    },
+    "scope": "Native loopback HTTP and actual exported handler with thin req/res adapter; no fetch/crypto/model mocks; not deployed Functions Framework or IAM integration.",
+    "rollback": "Forward revert production index.js/npm wiring to frozen bytes; preserve append-only evidence."
+  },
+  "boundary": "regressed=true is an explicit fail-closed veto for missing repository Rust lock/security/orchestration gates, not newly measured component regression. cost/noop0 neutral and unmeasured; root-only replay is not candidate promotion proof."
+}

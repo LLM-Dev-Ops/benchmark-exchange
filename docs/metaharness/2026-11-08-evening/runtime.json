@@ -1,0 +1,82 @@
+{
+  "logs": {
+    "/tmp/bench8-bootstrap.log": {
+      "sha256": "d62b9ea61198493f349144c679af36de4e6da0a787a129b34cf5d5cdde165e9b",
+      "bytes": 4426,
+      "truncated": true,
+      "text": "Reading package lists...\nBuilding dependency tree...\nReading state information...\nbuild-essential is already the newest version (12.10ubuntu1).\nlibseccomp2 is already the newest version (2.5.5-1ubuntu3.1).\npython3 is already the newest version (3.12.3-0ubuntu2.1).\nThe following additional packages will be installed:\n  libpkgconf3 libssl3t64 openssl pkgconf pkgconf-bin\nSuggested packages:\n  libssl-doc\nThe following NEW packages will be installed:\n  libpkgconf3 libssl-dev pkg-config pkgconf pkgconf-bin\nThe following packages will be upgraded:\n  libssl3t64 openssl\n2 upgraded, 5 newly installed, 0 to remove and 92 not upgraded.\nNeed to get 5433 kB of archives.\nAfter this operation, 13.6 MB of ad\n[TRUNCATED]\n.../4-pkgconf_1.8.1-2build1_amd64.deb ...\r\nUnpacking pkgconf:amd64 (1.8.1-2build1) ...\r\nSelecting previously unselected package pkg-config:amd64.\r\nPreparing to unpack .../5-pkg-config_1.8.1-2build1_amd64.deb ...\r\nUnpacking pkg-config:amd64 (1.8.1-2build1) ...\r\nSetting up libpkgconf3:amd64 (1.8.1-2build1) ...\r\nSetting up libssl-dev:amd64 (3.0.13-0ubuntu3.16) ...\r\nSetting up pkgconf-bin (1.8.1-2build1) ...\r\nSetting up openssl (3.0.13-0ubuntu3.16) ...\r\nSetting up pkgconf:amd64 (1.8.1-2build1) ...\r\nSetting up pkg-config:amd64 (1.8.1-2build1) ...\r\nProcessing triggers for libc-bin (2.39-0ubuntu8.9) ...\r\n3.0.13\n-lssl -lcrypto \ncargo 1.99.1 (5f94df478 2026-08-27)\nrustc 1.99.1 (58cf8f9c3 2026-10-13)\n"
+    },
+    "/tmp/bench8-agent.log": {
+      "sha256": "83125319b960952576c1fa9f20f7e2c14a5f76a37ec5cf4945f37d56f75d2af8",
+      "bytes": 1015,
+      "truncated": false,
+      "text": "{\"success\":true,\"agentId\":\"bench8-metric-review\",\"agentType\":\"reviewer\",\"model\":\"inherit\",\"modelRoutedBy\":\"explicit\",\"status\":\"registered\",\"createdAt\":\"2026-11-09T01:01:43.341Z\",\"note\":\"Agent registered for coordination. Three execution paths: (1) call agent_execute(agentId, prompt) — direct LLM call via Anthropic Messages API (requires ANTHROPIC_API_KEY); (2) Claude Code Task tool — spawns a real subagent; (3) claude -p — headless background instance.\"}\n{\"success\":false,\"agentId\":\"bench8-metric-review\",\"model\":\"claude-sonnet-5\",\"error\":\"No LLM provider configured. Set ANTHROPIC_API_KEY or ANTHROPIC_AUTH_TOKEN (Tier-3), OPENROUTER_API_KEY (#2042), or OLLAMA_API_KEY (Tier-2 — #1725).\",\"durationMs\":7,\"remediation\":\"Set one of ANTHROPIC_API_KEY, OPENROUTER_API_KEY (+ optional OPENROUTER_BASE_URL), or OLLAMA_API_KEY. Or set RUFLO_PROVIDER=openrouter|ollama to force a specific provider.\"}\n{\"success\":true,\"agentId\":\"bench8-metric-review\",\"terminated\":true,\"terminatedAt\":\"2026-11-09T01:01:43.362Z\"}\n"
+    },
+    "/tmp/bench8-meta.json": {
+      "sha256": "29789f054daba9546870c778d5cca44c83207aae1ad3ab5675d36a1ee3b01b8e",
+      "bytes": 407,
+      "truncated": false,
+      "text": "{\n  \"schema\": 1,\n  \"repo\": \"@llm-dev-ops/benchmark-exchange\",\n  \"harnessFit\": 76,\n  \"compileConfidence\": 100,\n  \"taskCoverage\": 65,\n  \"toolSafety\": 100,\n  \"memoryUsefulness\": 47,\n  \"estCostPerRunUsd\": 0.048,\n  \"recommendedMode\": \"CLI + MCP\",\n  \"archetype\": \"devops-harness\",\n  \"template\": \"vertical:devops\",\n  \"scaffoldReady\": true,\n  \"hardConstraints\": \"6/6\",\n  \"generatedAt\": \"2026-11-09T01:01:19.792Z\"\n}\n"
+    },
+    "/tmp/bench8-darwin.log": {
+      "sha256": "da069c47cd1ba473a6aff6e81ab13d3213658a139cdb535323ad46181a10ca10",
+      "bytes": 754,
+      "truncated": false,
+      "text": "note: --sandbox real (the default) scores variants by this repo's own test\ncommand, which cannot distinguish between mutated harness surfaces — every\nvariant will score identically and evolution will not converge on anything\n(see README \"The evaluation substrate\", ADR-099/102). Pass --sandbox mock\n(fast, deterministic), --sandbox agent (executes the real surface code,\nstill offline), or --sandbox llm-agent (genuine real-LLM signal, real API\nspend, ADR-273) for genuine evolutionary signal.\n\nDarwin Mode — leaderboard\n  0.985  baseline  [planner]  safety=1.00  pass=1.00 ◀ winner\n  0.985  g1_v0  [retryPolicy]  safety=1.00  pass=1.00\n\nWinner: baseline\nLineage: baseline\nDelta over baseline: +0.000\n\nArtifacts: /tmp/benchmark-nov8ev/.metaharness\n"
+    },
+    "/tmp/bench8-learning.log": {
+      "sha256": "bd78f96130596be8057737e7ae2eb7834023760d75463f0a26a0cbbb75dc56fc",
+      "bytes": 783,
+      "truncated": false,
+      "text": "Offline local MiniLM model verified: 384 dimensions; remote loading disabled\n[INFO] Recording outcome for task: benchmark-20261108-metrics\nTransformers.js loaded: Xenova/all-MiniLM-L6-v2\n{\n  \"taskId\": \"benchmark-20261108-metrics\",\n  \"success\": false,\n  \"duration\": 1001,\n  \"learningUpdates\": {\n    \"patternsUpdated\": 2,\n    \"newPatterns\": null,\n    \"trajectoryId\": null,\n    \"controller\": \"intelligence+bridge-store\",\n    \"outcomePersisted\": true,\n    \"available\": true\n  },\n  \"trajectory\": {\n    \"recorded\": true\n  },\n  \"quality\": 0.8,\n  \"pheromone\": {\n    \"active\": false,\n    \"reason\": \"no running pheromone-adaptive swarm\"\n  },\n  \"feedback\": {\n    \"recorded\": true,\n    \"controller\": \"intelligence+bridge-store\",\n    \"updates\": 2\n  },\n  \"timestamp\": \"2026-11-09T01:02:19.519Z\"\n}\n"
+    },
+    "/tmp/bench8-rust.log": {
+      "sha256": "4e61a8dfc33cbd72ad58db247d5c497cfa72722b3c616df662d017eb963d4d90",
+      "bytes": 323,
+      "truncated": false,
+      "text": "    Updating crates.io index\n    Updating git repository `https://github.com/LLM-Dev-Ops/infra`\nerror: cannot create the lock file /tmp/benchmark-nov8ev/Cargo.lock because --locked was passed to prevent this\nhelp: to generate the lock file without accessing the network, remove the --locked flag and use --offline instead.\n"
+    },
+    "/tmp/bench8-rust-candidate.log": {
+      "sha256": "4e61a8dfc33cbd72ad58db247d5c497cfa72722b3c616df662d017eb963d4d90",
+      "bytes": 323,
+      "truncated": false,
+      "text": "    Updating crates.io index\n    Updating git repository `https://github.com/LLM-Dev-Ops/infra`\nerror: cannot create the lock file /tmp/benchmark-nov8ev/Cargo.lock because --locked was passed to prevent this\nhelp: to generate the lock file without accessing the network, remove the --locked flag and use --offline instead.\n"
+    },
+    "/tmp/bench8-build.log": {
+      "sha256": "4e61a8dfc33cbd72ad58db247d5c497cfa72722b3c616df662d017eb963d4d90",
+      "bytes": 323,
+      "truncated": false,
+      "text": "    Updating crates.io index\n    Updating git repository `https://github.com/LLM-Dev-Ops/infra`\nerror: cannot create the lock file /tmp/benchmark-nov8ev/Cargo.lock because --locked was passed to prevent this\nhelp: to generate the lock file without accessing the network, remove the --locked flag and use --offline instead.\n"
+    },
+    "/tmp/bench8-clippy.log": {
+      "sha256": "4e61a8dfc33cbd72ad58db247d5c497cfa72722b3c616df662d017eb963d4d90",
+      "bytes": 323,
+      "truncated": false,
+      "text": "    Updating crates.io index\n    Updating git repository `https://github.com/LLM-Dev-Ops/infra`\nerror: cannot create the lock file /tmp/benchmark-nov8ev/Cargo.lock because --locked was passed to prevent this\nhelp: to generate the lock file without accessing the network, remove the --locked flag and use --offline instead.\n"
+    },
+    "/tmp/bench8-fmt.log": {
+      "sha256": "831b6b135c853e5544e3a96c479331be55128e57399dd02c3b29c15c93bf55f4",
+      "bytes": 324853,
+      "truncated": true,
+      "text": "Diff in /tmp/benchmark-nov8ev/crates/api-grpc/examples/client.rs:38:\n     match client.create_benchmark(create_request).await {\n         Ok(response) => {\n             let benchmark = response.into_inner().benchmark.unwrap();\n\u001b[31m-            println!(\"Created benchmark: {} (ID: {})\", benchmark.metadata.as_ref().map(|m| &m.name).unwrap_or(&\"\".to_string()), benchmark.id);\n\u001b[m\u000f\u001b[32m+            println!(\n\u001b[m\u000f\u001b[32m+                \"Created benchmark: {} (ID: {})\",\n\u001b[m\u000f\u001b[32m+                benchmark\n\u001b[m\u000f\u001b[32m+                    .metadata\n\u001b[m\u000f\u001b[32m+                    .as_ref()\n\u001b[m\u000f\u001b[32m+                    .map(|m| &m.name)\n\u001b[m\u000f\u001b[32m+                    .unwrap_or(&\"\".to_string()),\n\u001b[m\u000f\u001b[32m+\n[TRUNCATED]\n::VerifySubmission(job_data) => self.verify_submission(job_data).await,\n\u001b[m\u000f             _ => {\n                 warn!(\n                     job_id = %job.id,\nDiff in /tmp/benchmark-nov8ev/crates/worker/src/main.rs:109:\n                 jobs_succeeded = snapshot.jobs_succeeded,\n                 jobs_failed = snapshot.jobs_failed,\n                 success_rate = format!(\"{:.2}%\", snapshot.success_rate * 100.0),\n\u001b[31m-                avg_duration_ms = snapshot.average_duration\n\u001b[m\u000f\u001b[32m+                avg_duration_ms = snapshot\n\u001b[m\u000f\u001b[32m+                    .average_duration\n\u001b[m\u000f                     .map(|d| d.as_millis())\n                     .unwrap_or(0),\n                 \"Worker metrics\"\n"
+    },
+    "/tmp/bench8-audit.log": {
+      "sha256": "fefc5fe96b02fb512004c18d1d3a809fea38bac9bb6862874d2df28d4221c198",
+      "bytes": 164,
+      "truncated": false,
+      "text": "error: not found: Couldn't load Cargo.lock\nCaused by:\n  -> I/O operation failed: I/O operation failed: entity not found\n  -> I/O operation failed: entity not found\n"
+    },
+    "/tmp/bench8-stop.log": {
+      "sha256": "c68686795c1b11cc4b2ea80139b1588a4ed94180bdb8edb40024b358dfdd9bc2",
+      "bytes": 30,
+      "truncated": false,
+      "text": "Worker daemon was not running\n"
+    },
+    "/tmp/benchmark-nov8ev/.metaharness/lineage.json": {
+      "sha256": "024243c9f797be14c720566ce223d79531c787301da0a126841f46c08952187c",
+      "bytes": 443,
+      "truncated": false,
+      "text": "{\n  \"nodes\": [\n    {\n      \"id\": \"baseline\",\n      \"parentId\": null,\n      \"generation\": 0,\n      \"mutationSurface\": \"planner\",\n      \"finalScore\": 0.985,\n      \"promoted\": true\n    },\n    {\n      \"id\": \"g1_v0\",\n      \"parentId\": \"baseline\",\n      \"generation\": 1,\n      \"mutationSurface\": \"retryPolicy\",\n      \"finalScore\": 0.985,\n      \"promoted\": false\n    }\n  ],\n  \"edges\": [\n    {\n      \"from\": \"baseline\",\n      \"to\": \"g1_v0\"\n    }\n  ]\n}"
+    }
+  }
+}
